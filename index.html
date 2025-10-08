@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solvefy Interview Evaluation Portal</title>
+  <style>
+    :root{
+      --brand:#6a5acd; /* slate purple */
+      --brand-2:#00c2ff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --bg:#f8fafc;
+      --card:#ffffff;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --ring:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink)}
+    header{background:linear-gradient(90deg,var(--brand),var(--brand-2));color:#fff;padding:20px}
+    .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+    .brand{display:flex;gap:16px;align-items:center}
+    .brand img{height:56px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+    h1{margin:0;font-size:28px}
+    main{padding:24px 0}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 6px 18px rgba(17,24,39,.04)}
+    h2{margin:4px 0 14px 0;font-size:20px}
+    label{font-weight:600}
+    input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--ring);border-radius:10px}
+    textarea{width:100%;min-height:60px;padding:10px 12px;border:1px solid var(--ring);border-radius:10px}
+    .grid{display:grid;gap:14px}
+    .grid-2{grid-template-columns:1fr 1fr}
+    .grid-3{grid-template-columns:repeat(3,1fr)}
+    @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+    .q{padding:14px;border:1px solid var(--ring);border-radius:12px;background:#fff}
+    .prompt{font-weight:700;margin-bottom:8px}
+    .opt{display:block;margin:6px 0}
+    .muted{color:var(--muted);font-size:12px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
+    button.secondary{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+    button.ghost{background:#fff;color:#111;border:1px solid var(--ring)}
+    #reportBox{white-space:pre-wrap;background:#0b1021;color:#e5e7eb;border-radius:10px;padding:14px;overflow:auto;max-height:400px;border:1px solid #0f172a}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:1px solid var(--ring);padding:8px;text-align:left;font-size:14px}
+    th{background:#f3f4f6}
+    .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-weight:700}
+    .pill.Ap{background:var(--ok);color:#fff}
+    .pill.A{background:#22c55e;color:#fff}
+    .pill.B{background:#3b82f6;color:#fff}
+    .pill.C{background:#f59e0b;color:#fff}
+    .pill.D,.pill.E,.pill.F{background:#ef4444;color:#fff}
+    .footer{padding:20px;text-align:center;color:var(--muted)}
+    canvas{max-width:100%;height:240px;border:1px solid var(--ring);border-radius:10px;background:#fff}
+    .small{font-size:12px}
+    .note{background:#f9fafb;border:1px dashed var(--ring);padding:10px;border-radius:8px}
+    @media print{
+      header,.actions{display:none}
+      body{background:#fff}
+      .card{box-shadow:none;border-color:#ddd}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand">
+      <img src="./logo.svg" alt="Solvefy">
+      <div>
+        <h1>Solvefy Interview Evaluation Portal</h1>
+        <div class="small">Structured HR evaluation • MCQ-first • Decision matrix alignment • JSON/PDF export</div>
+      </div>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="card">
+      <h2>Candidate & Interview Details</h2>
+      <div class="grid grid-3">
+        <div><label>Candidate Name</label><input id="candName" type="text" placeholder="e.g., Muhammad Ali"/></div>
+        <div><label>Position / Role</label><input id="candRole" type="text" placeholder="e.g., Senior .NET Engineer"/></div>
+        <div><label>Interviewer(s)</label><input id="interviewers" type="text" placeholder="e.g., Jawad, Taqi"/></div>
+      </div>
+      <div class="grid grid-2" style="margin-top:12px">
+        <div><label>Interview Type</label>
+          <select id="interviewType" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:10px">
+            <option value="HR Screening">HR Screening</option>
+            <option value="Technical">Technical</option>
+            <option value="Final Panel">Final Panel</option>
+          </select>
+        </div>
+        <div><label>Date</label><input id="dateStr" type="text" placeholder="YYYY-MM-DD"/></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>HR Questions (MCQ + Optional Notes)</h2>
+      <div id="questions"></div>
+      <div class="note muted">Tip: Select the closest option that reflects the candidate's true behavior. Use notes only when needed.</div>
+    </section>
+
+    <section class="card">
+      <h2>HR Summary & Decision</h2>
+      <div class="grid grid-3">
+        <div>
+          <label>Overall Impression</label>
+          <select id="overallImpression" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:10px">
+            <option>Excellent</option>
+            <option>Strong</option>
+            <option>Good</option>
+            <option>Average</option>
+            <option>Below Average</option>
+            <option>Poor</option>
+          </select>
+        </div>
+        <div>
+          <label>Recommended Role Fit</label>
+          <select id="roleFit" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:10px">
+            <option>Senior Engineer</option>
+            <option>Mid-level Engineer</option>
+            <option>Junior Engineer</option>
+            <option>Team Lead</option>
+            <option>Project Manager</option>
+            <option>Other / Not sure</option>
+          </select>
+        </div>
+        <div>
+          <label>Decision</label>
+          <select id="decision" style="width:100%;padding:10px;border:1px solid var(--ring);border-radius:10px">
+            <option>Hire</option>
+            <option>Strong Consider</option>
+            <option>Hold</option>
+            <option>Reject</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label>Additional Comments (optional)</label>
+        <textarea id="hrComments" placeholder="Any final remarks or conditions (e.g., mentorship needed, probation, etc.)"></textarea>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Actions</h2>
+      <div class="actions">
+        <button id="btnGenerate">Generate Report & Score</button>
+        <button class="secondary" id="btnDownloadJson">Download JSON</button>
+        <button class="ghost" id="btnPrint">Print / Save PDF</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Generated Report</h2>
+      <div id="reportBox">No report yet.</div>
+    </section>
+
+    <section class="card">
+      <h2>Decision Matrix Alignment (by Dimension)</h2>
+      <div class="small muted" style="margin-bottom:8px">Shows weighted score vs. max and alignment % by evaluation dimension.</div>
+      <div style="overflow:auto">
+        <table id="matrixTable">
+          <thead><tr><th>Dimension</th><th>Weighted Score</th><th>Max Possible</th><th>Alignment %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px">
+        <canvas id="matrixChart" width="1000" height="260" aria-label="Decision Matrix Chart"></canvas>
+      </div>
+    </section>
+
+    <div class="footer small">© Solvefy — Structured, fair, and fast interviews.</div>
+  </main>
+
+<script>
+// =============== CONFIG ===============
+const dimensionMaxScore = 5; // 1..5 MCQ scale
+// MCQ questions, added & refined
+const questions = [
+  {
+    id:'mistakeOwnership',
+    prompt:'Tell me about a time you made a mistake at work. What happened and what did you do afterward?',
+    dimension:'Ownership & Accountability', weight:20,
+    options:[
+      {label:'Took full ownership, communicated, fixed, implemented safeguards', value:5},
+      {label:'Admitted mistake, fixed it', value:4},
+      {label:'Fixed but blamed others partly', value:3},
+      {label:'Minimized responsibility or blamed external factors', value:2},
+      {label:'Denied responsibility or deflected', value:1},
+    ]
+  },
+  {
+    id:'messyProject',
+    prompt:'Inherited a messy project/codebase — first steps and approach?',
+    dimension:'Problem‑Solving & Trade‑offs', weight:20,
+    options:[
+      {label:'Audited, prioritized, refactored high-impact parts while shipping', value:5},
+      {label:'Refactored steadily as issues surfaced', value:4},
+      {label:'Fixed only broken parts', value:3},
+      {label:'Avoided unfamiliar areas', value:2},
+      {label:'Reluctant to change anything', value:1},
+    ]
+  },
+  {
+    id:'pushbackScope',
+    prompt:'Had to push back on scope/timeline/stakeholders — how managed?',
+    dimension:'Communication & Stakeholder Management', weight:15,
+    options:[
+      {label:'Presented data, trade‑offs, phased plan; achieved alignment', value:5},
+      {label:'Requested more time and negotiated', value:4},
+      {label:'Accepted partially but struggled', value:3},
+      {label:'Reluctant to push back; delivered under pressure', value:2},
+      {label:'Avoided conflict; let others decide', value:1},
+    ]
+  },
+  {
+    id:'failedSolution',
+    prompt:'Initial solution failed — response and learning?',
+    dimension:'Growth Mindset & Adaptability', weight:15,
+    options:[
+      {label:'Detected early, pivoted, learned assumptions, realigned', value:5},
+      {label:'Iterated fixes until acceptable', value:4},
+      {label:'Struggled to recover, but managed', value:3},
+      {label:'Delayed recognition; underperformed', value:2},
+      {label:'Ignored failure or blamed external causes', value:1},
+    ]
+  },
+  {
+    id:'tradeoffScenario',
+    prompt:'3 features requested but time for 1 — selection & communication?',
+    dimension:'Practical & Strategic Thinking', weight:15,
+    options:[
+      {label:'Use value/dependency metrics; propose roadmap; communicate trade‑offs', value:5},
+      {label:'Pick highest-impact; inform stakeholders; delay others', value:4},
+      {label:'Choose comfortable/easy first', value:3},
+      {label:'Pick randomly or easiest', value:2},
+      {label:'Unable to decide or avoid trade‑offs', value:1},
+    ]
+  },
+  {
+    id:'feedbackReceived',
+    prompt:'Received tough feedback — reaction & follow-through?',
+    dimension:'Cultural / Team Fit & Coachability', weight:10,
+    options:[
+      {label:'Humbly received; adjusted; followed up', value:5},
+      {label:'Accepted and changed', value:4},
+      {label:'Initially defensive; later adapted', value:3},
+      {label:'Resisted or delayed uptake', value:2},
+      {label:'Denied or rejected feedback', value:1},
+    ]
+  },
+  {
+    id:'domainBelief',
+    prompt:'Core belief about your domain — how it guides decisions?',
+    dimension:'Strategic / Big‑Picture Thinking', weight:5,
+    options:[
+      {label:'Deep belief; consistently used in decisions', value:5},
+      {label:'Clear belief; often applied', value:4},
+      {label:'General belief; weak linkage', value:3},
+      {label:'Vague belief; little evidence', value:2},
+      {label:'No clear belief expressed', value:1},
+    ]
+  },
+  // Newly added quick-pick questions (MCQ) tailored for HR speed:
+  {
+    id:'speedQualityMaint',
+    prompt:'How does the candidate balance speed, quality, and maintainability?',
+    dimension:'Practical & Strategic Thinking', weight:10,
+    options:[
+      {label:'Mentions automation/tests/reviews; prioritizes long-term maintainability', value:5},
+      {label:'Speaks to balance w/ examples', value:4},
+      {label:'General claims without specifics', value:3},
+      {label:'Focus on speed at cost of quality', value:2},
+      {label:'No awareness of trade-offs', value:1},
+    ]
+  },
+  {
+    id:'teamStress',
+    prompt:'Team under stress — candidate’s response?',
+    dimension:'Cultural / Team Fit & Coachability', weight:10,
+    options:[
+      {label:'Proactive risk surfacing; supports team; creates small wins', value:5},
+      {label:'Helps beyond own tasks when asked', value:4},
+      {label:'Focuses only on own tasks', value:3},
+      {label:'Disengages or complains', value:2},
+      {label:'Creates negativity/toxicity', value:1},
+    ]
+  }
+];
+
+// =============== RENDER ===============
+function renderQuestions(){
+  const root = document.getElementById('questions');
+  root.innerHTML='';
+  questions.forEach(q=>{
+    const div=document.createElement('div');
+    div.className='q';
+    const p=document.createElement('div');
+    p.className='prompt';
+    p.textContent=q.prompt;
+    div.appendChild(p);
+    q.options.forEach((opt,idx)=>{
+      const lbl=document.createElement('label');
+      lbl.className='opt';
+      const r=document.createElement('input');
+      r.type='radio'; r.name='opt_'+q.id; r.value=opt.value;
+      lbl.appendChild(r);
+      lbl.append(' '+opt.label);
+      div.appendChild(lbl);
+    });
+    // optional notes
+    const notesLbl=document.createElement('div');
+    notesLbl.className='muted'; notesLbl.textContent='Notes / justification (optional)';
+    const ta=document.createElement('textarea'); ta.id='notes_'+q.id;
+    div.appendChild(notesLbl); div.appendChild(ta);
+    root.appendChild(div);
+  });
+}
+
+// =============== SCORING & REPORT ===============
+function collect(){
+  const answers={}, scores={}, notes={};
+  questions.forEach(q=>{
+    const radios=document.getElementsByName('opt_'+q.id);
+    let sel=null; for(const r of radios){ if(r.checked){ sel=parseInt(r.value); break; } }
+    scores[q.id]=sel || 0;
+    answers[q.id]= sel==null ? '' : (q.options.find(o=>o.value===sel)?.label || '');
+    notes[q.id]=document.getElementById('notes_'+q.id).value.trim();
+  });
+  return {answers,scores,notes};
+}
+
+function computeFinal(scores){
+  let totalWeighted=0, totalWeight=0;
+  questions.forEach(q=>{
+    totalWeighted += (scores[q.id]/dimensionMaxScore)*q.weight;
+    totalWeight += q.weight;
+  });
+  const normalized = totalWeighted/totalWeight;
+  const finalScore = normalized*5;
+  let category='';
+  if(finalScore>=4.5) category='A+';
+  else if(finalScore>=4.0) category='A';
+  else if(finalScore>=3.5) category='B';
+  else if(finalScore>=2.5) category='C';
+  else if(finalScore>=1.8) category='D';
+  else if(finalScore>=1.0) category='E';
+  else category='F';
+  return {finalScore, category};
+}
+
+function buildDecisionMatrix(scores){
+  const totals={}, maxes={};
+  questions.forEach(q=>{
+    if(!totals[q.dimension]){ totals[q.dimension]=0; maxes[q.dimension]=0; }
+    totals[q.dimension]+= scores[q.id]*q.weight;
+    maxes[q.dimension]+= dimensionMaxScore*q.weight;
+  });
+  const rows = Object.keys(totals).map(dim=>{
+    const weighted=totals[dim];
+    const max= maxes[dim] || 1;
+    const pct = (weighted/max)*100;
+    return {dimension:dim, weightedScore:weighted, maxPossible:max, percent:parseFloat(pct.toFixed(1))};
+  });
+  return rows;
+}
+
+function renderMatrixTable(rows){
+  const tbody=document.querySelector('#matrixTable tbody');
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${r.dimension}</td>
+                    <td>${r.weightedScore.toFixed(1)}</td>
+                    <td>${r.maxPossible.toFixed(1)}</td>
+                    <td>${r.percent}%</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderMatrixChart(rows){
+  const canvas=document.getElementById('matrixChart');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // simple bar chart
+  const padding=40, w=canvas.width, h=canvas.height;
+  const innerW=w - padding*2; const innerH=h - padding*2;
+  const barW = innerW / rows.length * 0.6;
+  const maxPct = 100;
+  // axes
+  ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, h-padding); ctx.lineTo(w-padding, h-padding); ctx.stroke();
+  // bars
+  rows.forEach((r,i)=>{
+    const x = padding + (innerW/rows.length)*i + (innerW/rows.length - barW)/2;
+    const barH = (r.percent/maxPct)* (innerH);
+    const y = h - padding - barH;
+    ctx.fillStyle = '#6a5acd';
+    ctx.fillRect(x,y,barW,barH);
+    // labels
+    ctx.fillStyle = '#111827'; ctx.font='12px system-ui';
+    const label = r.dimension.length>20 ? r.dimension.slice(0,20)+'…' : r.dimension;
+    ctx.fillText(label, x-6, h-padding+14);
+    ctx.fillText(r.percent+'%', x, y-4);
+  });
+}
+
+function generateReport(){
+  const name=document.getElementById('candName').value.trim();
+  const role=document.getElementById('candRole').value.trim();
+  const interviewers=document.getElementById('interviewers').value.trim();
+  const interviewType=document.getElementById('interviewType').value;
+  const dateStr=document.getElementById('dateStr').value.trim();
+  const overallImpression=document.getElementById('overallImpression').value;
+  const roleFit=document.getElementById('roleFit').value;
+  const decision=document.getElementById('decision').value;
+  const hrComments=document.getElementById('hrComments').value.trim();
+
+  const {answers,scores,notes} = collect();
+  const {finalScore, category} = computeFinal(scores);
+  const dmRows = buildDecisionMatrix(scores);
+  renderMatrixTable(dmRows);
+  renderMatrixChart(dmRows);
+
+  // textual report
+  let rpt = `Candidate: ${name}\nRole: ${role}\nType: ${interviewType}\nDate: ${dateStr}\nInterviewers: ${interviewers}\n\n`;
+  rpt += `Final Score: ${finalScore.toFixed(2)} / 5.0  |  Category: ${category}\n\n`;
+  rpt += `=== Detailed Responses ===\n`;
+  questions.forEach(q=>{
+    rpt += `\n• ${q.prompt}\n  Selected: ${answers[q.id] || '[Not selected]'}  (Score: ${scores[q.id]})\n`;
+    if(notes[q.id]) rpt += `  Notes: ${notes[q.id]}\n`;
+  });
+  rpt += `\n=== HR Summary ===\nOverall Impression: ${overallImpression}\nRecommended Role Fit: ${roleFit}\nDecision: ${decision}\n`;
+  if(hrComments) rpt += `Comments: ${hrComments}\n`;
+
+  rpt += `\n=== Decision Matrix Alignment ===\nDimension | Weighted Score | Max Possible | Alignment %\n`;
+  rpt += `-----------------------------------------------------\n`;
+  dmRows.forEach(r=>{
+    rpt += `${r.dimension} | ${r.weightedScore.toFixed(1)} | ${r.maxPossible.toFixed(1)} | ${r.percent}%\n`;
+  });
+
+  document.getElementById('reportBox').textContent = rpt;
+
+  // JSON report for ATS
+  const reportJson = {
+    meta:{
+      version:"1.0.0",
+      generatedAt: new Date().toISOString()
+    },
+    candidate:{
+      name, role, interviewType, date: dateStr
+    },
+    interviewers,
+    finalScore: parseFloat(finalScore.toFixed(2)),
+    category,
+    hrSummary:{
+      overallImpression,
+      roleFit,
+      decision,
+      comments: hrComments
+    },
+    items: questions.map(q=>({
+      id:q.id, prompt:q.prompt, selectedAnswer:answers[q.id], score:scores[q.id],
+      weight:q.weight, dimension:q.dimension, notes:notes[q.id]
+    })),
+    decisionMatrix: dmRows
+  };
+  window.__LAST_JSON__ = reportJson;
+  return reportJson;
+}
+
+// =============== EXPORTS ===============
+function downloadJson(){
+  const data = window.__LAST_JSON__ || generateReport();
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`solvefy_candidate_report_${(data.candidate?.name||'candidate').replace(/\s+/g,'_')}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function printPdf(){ window.print(); }
+
+// =============== INIT ===============
+document.getElementById('btnGenerate').addEventListener('click', generateReport);
+document.getElementById('btnDownloadJson').addEventListener('click', downloadJson);
+document.getElementById('btnPrint').addEventListener('click', printPdf);
+renderQuestions();
+</script>
+</body>
+</html>
