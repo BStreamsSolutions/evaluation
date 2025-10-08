@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Interview Evaluation Tool (MCQ + Notes)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .question-block {
+            margin-bottom: 20px;
+        }
+
+        .question-block label.prompt {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .options {
+            margin-left: 20px;
+        }
+
+        .options label {
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .notes {
+            margin-top: 5px;
+        }
+
+        .notes textarea {
+            width: 100%;
+            height: 50px;
+        }
+
+        #report {
+            white-space: pre-wrap;
+            background: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ccc;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Interview Evaluation Tool</h1>
+
+    <div class="section">
+        <h2>Candidate Info</h2>
+        <label>
+            Candidate Name:
+            <input type="text" id="candidateName" />
+        </label><br><br>
+        <label>
+            Position / Role:
+            <input type="text" id="candidateRole" />
+        </label><br><br>
+        <label>
+            Interviewer(s):
+            <input type="text" id="interviewerNames" />
+        </label>
+    </div>
+
+    <div class="section" id="questionsSection">
+        <h2>Questions & Responses</h2>
+        <!-- Question blocks will be injected here -->
+    </div>
+
+    <button class="btn" id="generateReportBtn">Generate Report & Score</button>
+
+    <div class="section">
+        <h2>Generated Report</h2>
+        <div id="report"></div>
+    </div>
+
+    <script>
+        // Configuration: questions with MCQ choices plus weights & dimension
+        const questions = [
+                {
+                    "id": "responsibilityMistake",
+                    "prompt": "Tell me about a mistake you made. What did you do next?",
+                    "dimension": "responsibilityOwnership",
+                    "weight": 5,
+                    "options": [
+                        { "label": "Owns it; informs stakeholders; fixes root cause; adds prevention", "value": 5 },
+                        { "label": "Owns it; fixes; partial prevention", "value": 4 },
+                        { "label": "Admits; fixes; no prevention", "value": 3 },
+                        { "label": "Minimizes; shares blame; vague fix", "value": 2 },
+                        { "label": "Denies/blames; no fix", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "dependencySlip",
+                    "prompt": "A dependency slips and the deadline is at risk. What do you do?",
+                    "dimension": "solutionOrientation",
+                    "weight": 5,
+                    "options": [
+                        { "label": "Replans; proposes options; communicates risks; protects outcome", "value": 5 },
+                        { "label": "Escalates early; offers 1–2 options", "value": 4 },
+                        { "label": "Waits for guidance; basic escalation", "value": 3 },
+                        { "label": "Passively waits; blames dependency", "value": 2 },
+                        { "label": "Gives up; ‘not my job’", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "speedQualityBalance",
+                    "prompt": "How do you balance speed, quality, and maintainability?",
+                    "dimension": "communicationInsight",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Names trade-offs + practices (tests, reviews, standards) with example", "value": 5 },
+                        { "label": "States practices with some example", "value": 4 },
+                        { "label": "General talk; no clear example", "value": 3 },
+                        { "label": "Chooses speed over all; fix later", "value": 2 },
+                        { "label": "No framework; vague answer", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "scopeNegotiation",
+                    "prompt": "Stakeholder wants more in same timeline. What’s your approach?",
+                    "dimension": "accountabilityStakeholders",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Negotiates scope with data; offers phased options; confirms plan", "value": 5 },
+                        { "label": "Pushback with some data; suggests 1 option", "value": 4 },
+                        { "label": "Escalates; waits for decision", "value": 3 },
+                        { "label": "Says yes to everything; risk unaddressed", "value": 2 },
+                        { "label": "Avoids convo; lets plan fail", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "learnNewSkill",
+                    "prompt": "Share a recent skill you learned to solve a work problem.",
+                    "dimension": "growthMindset",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Self-driven; fast learning; applied to impact; measurable result", "value": 5 },
+                        { "label": "Learned and applied; some impact", "value": 4 },
+                        { "label": "Learned but not applied", "value": 3 },
+                        { "label": "Talked about learning; no action", "value": 2 },
+                        { "label": "No learning example", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "conflictDisagree",
+                    "prompt": "You disagreed with a lead/peer. How did you handle it?",
+                    "dimension": "teamFitCollaboration",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Respectful challenge with data; aligns after decision; reflects", "value": 5 },
+                        { "label": "Shares view; accepts decision", "value": 4 },
+                        { "label": "Complies silently", "value": 3 },
+                        { "label": "Argues/defensive; slow to align", "value": 2 },
+                        { "label": "Undermines decision", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "priorityTradeoffs",
+                    "prompt": "Too many tasks, limited time. What do you do first?",
+                    "dimension": "problemSolving",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Clarifies goals; sequences by impact/risk; confirms with stakeholders", "value": 5 },
+                        { "label": "Uses priority rules; checks with manager", "value": 4 },
+                        { "label": "Picks easiest/quick wins without alignment", "value": 3 },
+                        { "label": "Random switching; multitasks poorly", "value": 2 },
+                        { "label": "Stalls; asks what to do for all", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "stakeholderComms",
+                    "prompt": "How do you keep stakeholders informed during uncertainty?",
+                    "dimension": "communicationInsight",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Sets cadence; shares facts/risks/options; asks for decisions", "value": 5 },
+                        { "label": "Regular updates; some risks", "value": 4 },
+                        { "label": "Ad-hoc updates; little risk detail", "value": 3 },
+                        { "label": "Updates only when asked", "value": 2 },
+                        { "label": "No updates", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "estimationAccuracy",
+                    "prompt": "Describe how you estimate effort and improve accuracy over time.",
+                    "dimension": "practicalThinking",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Breaks work; uses historicals/buffers; tracks vs. actuals to learn", "value": 5 },
+                        { "label": "Breaks work; some tracking", "value": 4 },
+                        { "label": "Rough guesses; no tracking", "value": 3 },
+                        { "label": "Guesses under pressure; misses often", "value": 2 },
+                        { "label": "Avoids estimating", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "deadlinePressure",
+                    "prompt": "Share a story of shipping under pressure. What ensured success?",
+                    "dimension": "responsibilityOwnership",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Clear plan; risk log; checklists; quality gates; outcome achieved", "value": 5 },
+                        { "label": "Plan + some controls; delivered", "value": 4 },
+                        { "label": "Worked late; relied on heroics", "value": 3 },
+                        { "label": "Chaotic push; quality debt", "value": 2 },
+                        { "label": "Missed; blames others", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "documentationHabits",
+                    "prompt": "What do you document and why?",
+                    "dimension": "practicalThinking",
+                    "weight": 2,
+                    "options": [
+                        { "label": "Docs for onboarding, ops, decisions; kept current", "value": 5 },
+                        { "label": "Docs main flows; updates sometimes", "value": 4 },
+                        { "label": "Minimal notes; ad-hoc", "value": 3 },
+                        { "label": "Rarely documents", "value": 2 },
+                        { "label": "Does not document", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "testingApproach",
+                    "prompt": "How do you prevent regressions?",
+                    "dimension": "solutionOrientation",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Automated tests + reviews + CI checks; example given", "value": 5 },
+                        { "label": "Tests + reviews; limited CI", "value": 4 },
+                        { "label": "Manual checks only", "value": 3 },
+                        { "label": "Spot checks sometimes", "value": 2 },
+                        { "label": "No prevention approach", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "feedbackReceiving",
+                    "prompt": "Describe tough feedback you received and what changed after.",
+                    "dimension": "growthMindset",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Thanks; extracts lesson; visible change; follow-up proof", "value": 5 },
+                        { "label": "Accepts; some change", "value": 4 },
+                        { "label": "Accepts; no clear change", "value": 3 },
+                        { "label": "Defensive at first; minor change", "value": 2 },
+                        { "label": "Rejects/blames; no change", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "feedbackGiving",
+                    "prompt": "How do you give constructive feedback to a teammate?",
+                    "dimension": "teamFitCollaboration",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Private, specific, actionable; agrees next steps; follows up", "value": 5 },
+                        { "label": "Specific; suggests next steps", "value": 4 },
+                        { "label": "General; no follow-up", "value": 3 },
+                        { "label": "Public/harsh; vague", "value": 2 },
+                        { "label": "Avoids giving feedback", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "ethicsIntegrity",
+                    "prompt": "Share a time you chose the right thing over the easy thing.",
+                    "dimension": "professionalism",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Names policy/risk; protects user/company; documents decision", "value": 5 },
+                        { "label": "Chose right; informed lead", "value": 4 },
+                        { "label": "Chose right; low impact", "value": 3 },
+                        { "label": "Chose easy; minor risk", "value": 2 },
+                        { "label": "Chose easy; ignored risk", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "dataDecision",
+                    "prompt": "Example of using data to make a decision.",
+                    "dimension": "practicalThinking",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Defines metric; tests hypothesis; decision + result", "value": 5 },
+                        { "label": "Uses metrics to compare options", "value": 4 },
+                        { "label": "Some numbers; weak link to decision", "value": 3 },
+                        { "label": "Anecdotes only", "value": 2 },
+                        { "label": "No data use", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "initiativeBeyondRole",
+                    "prompt": "When did you go beyond your job description to fix something?",
+                    "dimension": "responsibilityOwnership",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Proactive fix with measurable impact; shared learning", "value": 5 },
+                        { "label": "Proactive fix; local impact", "value": 4 },
+                        { "label": "Small extra effort", "value": 3 },
+                        { "label": "Only when told", "value": 2 },
+                        { "label": "Never", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "crossFunctional",
+                    "prompt": "Describe effective work with another function (e.g., QA, Design, Sales).",
+                    "dimension": "teamFitCollaboration",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Shared goals; clear roles; resolved conflicts; success story", "value": 5 },
+                        { "label": "Good handoffs; delivered", "value": 4 },
+                        { "label": "Basic coordination", "value": 3 },
+                        { "label": "Friction; unresolved issues", "value": 2 },
+                        { "label": "Avoids cross-team work", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "customerFocus",
+                    "prompt": "Tell me how you incorporated user/customer feedback.",
+                    "dimension": "solutionOrientation",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Synthesizes feedback; prioritizes by impact; ships change; measures", "value": 5 },
+                        { "label": "Implements key feedback", "value": 4 },
+                        { "label": "Implements ad-hoc", "value": 3 },
+                        { "label": "Ignores/argues with feedback", "value": 2 },
+                        { "label": "No feedback process", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "retrospectionKaizen",
+                    "prompt": "What process improvement did you drive recently?",
+                    "dimension": "growthMindset",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Identified waste; piloted change; measured better outcomes", "value": 5 },
+                        { "label": "Suggested & adopted small improvement", "value": 4 },
+                        { "label": "Suggested only", "value": 3 },
+                        { "label": "Complains; no action", "value": 2 },
+                        { "label": "No interest in improvement", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "riskManagement",
+                    "prompt": "How do you surface and manage risks?",
+                    "dimension": "problemSolving",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Maintains risk log; owners/mitigations; reviews cadence", "value": 5 },
+                        { "label": "Flags risks early; proposes mitigations", "value": 4 },
+                        { "label": "Flags when late", "value": 3 },
+                        { "label": "Flags without mitigations", "value": 2 },
+                        { "label": "Doesn’t flag risks", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "ambiguityHandling",
+                    "prompt": "You get an unclear task. What are your next steps?",
+                    "dimension": "problemSolving",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Clarifies outcome; drafts proposal; validates; proceeds", "value": 5 },
+                        { "label": "Asks questions; proceeds with partial plan", "value": 4 },
+                        { "label": "Waits for full spec", "value": 3 },
+                        { "label": "Starts blindly; rework later", "value": 2 },
+                        { "label": "Stuck; no progress", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "timeManagement",
+                    "prompt": "How do you protect focused time and meet commitments?",
+                    "dimension": "professionalism",
+                    "weight": 2,
+                    "options": [
+                        { "label": "Blocks focus time; batches comms; tracks commitments", "value": 5 },
+                        { "label": "Uses calendar & lists; mostly on time", "value": 4 },
+                        { "label": "Works off memory; mixed results", "value": 3 },
+                        { "label": "Frequently late; excuses", "value": 2 },
+                        { "label": "No system; misses often", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "qualityBar",
+                    "prompt": "How do you define and enforce your quality bar?",
+                    "dimension": "communicationInsight",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Clear definition; checklists/DoD; examples; enforces with team", "value": 5 },
+                        { "label": "Clear personal standards; examples", "value": 4 },
+                        { "label": "General idea; few examples", "value": 3 },
+                        { "label": "Vague; relies on QA only", "value": 2 },
+                        { "label": "No quality definition", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "ownershipBoundary",
+                    "prompt": "A problem appears ‘outside your lane’. What do you do?",
+                    "dimension": "responsibilityOwnership",
+                    "weight": 4,
+                    "options": [
+                        { "label": "Takes responsibility to drive resolution; loops in owners; tracks to done", "value": 5 },
+                        { "label": "Raises promptly; helps where possible", "value": 4 },
+                        { "label": "Informs owner; stops there", "value": 3 },
+                        { "label": "Ignores; ‘not mine’", "value": 2 },
+                        { "label": "Blames; obstructs", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "domainBelief",
+                    "prompt": "What’s a core belief you hold about your domain? How does it guide decisions?",
+                    "dimension": "strategicThinking",
+                    "weight": 5,
+                    "options": [
+                        { "label": "Deep belief; used in decisions; consistent examples", "value": 5 },
+                        { "label": "Clear belief; sometimes applied", "value": 4 },
+                        { "label": "General belief; weak link to work", "value": 3 },
+                        { "label": "Vague belief; little evidence", "value": 2 },
+                        { "label": "No articulated belief", "value": 1 }
+                    ]
+                },
+                {
+                    "id": "leadershipPotential",
+                    "prompt": "Describe a time you led without authority.",
+                    "dimension": "teamFitCollaboration",
+                    "weight": 3,
+                    "options": [
+                        { "label": "Aligns people; removes blockers; delivers result", "value": 5 },
+                        { "label": "Influences peers; helps deliver", "value": 4 },
+                        { "label": "Coordinates tasks only", "value": 3 },
+                        { "label": "Tells others what to do; no buy-in", "value": 2 },
+                        { "label": "Avoids leading", "value": 1 }
+                    ]
+                }
+            ]
+;
+            // {
+            //     id: 'mistakeOwnership',
+            //     prompt: "Tell me about a time you made a mistake at work. What happened and what did you do afterward?",
+            //     dimension: 'ownership',
+            //     weight: 20,
+            //     options: [
+            //         { label: "Took full ownership, communicated, fixed, and set up future safeguards", value: 5 },
+            //         { label: "Admitted mistake, fixed it", value: 4 },
+            //         { label: "Fixed but placed some blame elsewhere", value: 3 },
+            //         { label: "Minimized responsibility, blamed external factors", value: 2 },
+            //         { label: "Denied responsibility or deflected", value: 1 }
+            //     ]
+            // },
+            // {
+            //     id: 'messyProject',
+            //     prompt: "Walk me through inheriting a messy project or codebase. What was your approach?",
+            //     dimension: 'problemSolving',
+            //     weight: 20,
+            //     options: [
+            //         { label: "Audited, prioritized, refactored high-impact parts while shipping", value: 5 },
+            //         { label: "Refactored steadily as issues surfaced", value: 4 },
+            //         { label: "Fixed only broken parts", value: 3 },
+            //         { label: "Avoided touching unfamiliar areas", value: 2 },
+            //         { label: "Reluctant to change anything", value: 1 }
+            //     ]
+            // },
+            // {
+            //     id: 'pushbackScope',
+            //     prompt: "Time you had to push back on scope, timeline, or stakeholder expectations. How did you manage?",
+            //     dimension: 'communication',
+            //     weight: 15,
+            //     options: [
+            //         { label: "Presented data, trade-offs, phased plan, got alignment", value: 5 },
+            //         { label: "Requested more time and negotiated", value: 4 },
+            //         { label: "Accepted partially but struggled", value: 3 },
+            //         { label: "Reluctant to push back; delivered under duress", value: 2 },
+            //         { label: "Avoided conflict, let others decide", value: 1 }
+            //     ]
+            // },
+            // {
+            //     id: 'failedSolution',
+            //     prompt: "Describe when your initial solution failed. How did you respond and what did you learn?",
+            //     dimension: 'growth',
+            //     weight: 15,
+            //     options: [
+            //         { label: "Detected early, pivoted, learned assumptions, realigned", value: 5 },
+            //         { label: "Iterated fixes until acceptable", value: 4 },
+            //         { label: "Struggled to recover, but managed", value: 3 },
+            //         { label: "Delayed recognition, underperformed", value: 2 },
+            //         { label: "Ignored failure or blamed external causes", value: 1 }
+            //     ]
+            // },
+            // {
+            //     id: 'tradeoffScenario',
+            //     prompt: "If 3 features come in, but only time for 1: how do you pick, communicate & compromise?",
+            //     dimension: 'practicalThinking',
+            //     weight: 15,
+            //     options: [
+            //         { label: "Use value/dependency metrics, propose roadmap, communicate trade-offs", value: 5 },
+            //         { label: "Pick highest-impact, inform stakeholders, delay others", value: 4 },
+            //         { label: "Choose what’s comfortable first", value: 3 },
+            //         { label: "Accept random or easy feature", value: 2 },
+            //         { label: "Unable to decide or avoid trade-offs", value: 1 }
+            //     ]
+            // },
+            // {
+            //     id: 'feedbackReceived',
+            //     prompt: "Peer or manager gave you tough feedback. What was it & how did you respond?",
+            //     dimension: 'culturalFit',
+            //     weight: 10,
+            //     options: [
+            //         { label: "Received humbly, adjusted approach, followed up", value: 5 },
+            //         { label: "Accepted and changed", value: 4 },
+            //         { label: "Initially defensive, later adapted", value: 3 },
+            //         { label: "Resisted or delayed feedback uptake", value: 2 },
+            //         { label: "Denied or rejected feedback", value: 1 }
+            //     ]
+            // },
+            // {
+            //     id: 'domainBelief',
+            //     prompt: "What’s a core belief you hold about your domain? How does it guide your decisions?",
+            //     dimension: 'strategicThinking',
+            //     weight: 5,
+            //     options: [
+            //         { label: "Deep belief, used in decisions, consistent across examples", value: 5 },
+            //         { label: "Clear belief, sometimes applied", value: 4 },
+            //         { label: "General belief, weak linkage to work", value: 3 },
+            //         { label: "Vague belief, little evidence", value: 2 },
+            //         { label: "No articulated belief", value: 1 }
+            //     ]
+            // }
+            
+
+        const dimensionMaxScore = 5;
+
+        function initQuestions() {
+            const container = document.getElementById('questionsSection');
+            questions.forEach(q => {
+                const div = document.createElement('div');
+                div.className = 'question-block';
+                div.id = 'block_' + q.id;
+
+                const lbl = document.createElement('label');
+                lbl.className = 'prompt';
+                lbl.textContent = q.prompt;
+                div.appendChild(lbl);
+
+                const optsDiv = document.createElement('div');
+                optsDiv.className = 'options';
+                q.options.forEach(opt => {
+                    const rlabel = document.createElement('label');
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'opt_' + q.id;
+                    radio.value = opt.value;
+                    rlabel.appendChild(radio);
+                    rlabel.append(` ${opt.label}`);
+                    optsDiv.appendChild(rlabel);
+                });
+                div.appendChild(optsDiv);
+
+                // Optional notes
+                const notesDiv = document.createElement('div');
+                notesDiv.className = 'notes';
+                const notesLbl = document.createElement('label');
+                notesLbl.textContent = "Notes / justification (optional):";
+                const notesTa = document.createElement('textarea');
+                notesTa.id = 'notes_' + q.id;
+                notesDiv.appendChild(notesLbl);
+                notesDiv.appendChild(notesTa);
+                div.appendChild(notesDiv);
+
+                container.appendChild(div);
+            });
+        }
+
+        function generateReport() {
+            const name = document.getElementById('candidateName').value.trim();
+            const role = document.getElementById('candidateRole').value.trim();
+            const interviewers = document.getElementById('interviewerNames').value.trim();
+
+            // Collect answers
+            const answers = {};
+            const scores = {};
+            const notes = {};
+            questions.forEach(q => {
+                const radios = document.getElementsByName('opt_' + q.id);
+                let selected = null;
+                for (const r of radios) {
+                    if (r.checked) {
+                        selected = parseInt(r.value);
+                        break;
+                    }
+                }
+                scores[q.id] = selected || 0;
+                answers[q.id] = selected === null ? "" : q.options.find(o => o.value === selected).label;
+                notes[q.id] = document.getElementById('notes_' + q.id).value.trim();
+            });
+
+            // Compute weighted normalized score
+            let totalWeighted = 0;
+            let totalWeight = 0;
+            questions.forEach(q => {
+                const sc = scores[q.id];
+                totalWeighted += (sc / dimensionMaxScore) * q.weight;
+                totalWeight += q.weight;
+            });
+            const normalized = totalWeighted / totalWeight;
+            const finalScore = normalized * 5;
+            let category = '';
+            if (finalScore >= 4.5) category = 'A+';
+            else if (finalScore >= 4.0) category = 'A';
+            else if (finalScore >= 3.5) category = 'B';
+            else if (finalScore >= 2.5) category = 'C';
+            else if (finalScore >= 1.8) category = 'D';
+            else if (finalScore >= 1.0) category = 'E';
+            else category = 'F';
+
+            // Generate report text
+            let rpt = `Candidate: ${name}\nRole: ${role}\nInterviewers: ${interviewers}\n\n`;
+            rpt += `Final Score: ${finalScore.toFixed(2)} / 5.0\nCategory: ${category}\n\n`;
+            rpt += `=== Detailed Responses ===\n`;
+            questions.forEach(q => {
+                rpt += `\nPrompt: ${q.prompt}\n`;
+                rpt += `Selected Answer: ${answers[q.id]} (Score: ${scores[q.id]})\n`;
+                if (notes[q.id]) {
+                    rpt += `Notes: ${notes[q.id]}\n`;
+                }
+            });
+
+            document.getElementById('report').textContent = rpt;
+
+            // JSON object
+            const reportJson = {
+                candidateName: name,
+                candidateRole: role,
+                interviewers: interviewers,
+                finalScore: parseFloat(finalScore.toFixed(2)),
+                category: category,
+                items: questions.map(q => ({
+                    id: q.id,
+                    prompt: q.prompt,
+                    selectedAnswer: answers[q.id],
+                    score: scores[q.id],
+                    notes: notes[q.id],
+                    weight: q.weight,
+                    dimension: q.dimension
+                }))
+            };
+
+            console.log("JSON Report:", reportJson);
+            // You can send via AJAX / fetch here
+            return reportJson;
+        }
+
+        document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+        window.onload = initQuestions;
+    </script>
+</body>
+
+</html>
