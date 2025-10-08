@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interview Evaluation Wizard (Typeform Style)</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #0b1220;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22c55e;
+      --accent2: #06b6d4;
+      --border: #1f2937;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 10% 0%, #1e293b 0%, var(--bg) 50%),
+                  radial-gradient(1200px 800px at 90% 0%, #111827 0%, var(--bg) 70%);
+    }
+    .wrap { min-height: 100%; display: grid; grid-template-rows: auto 1fr auto; }
+    .topbar { padding: 16px 20px; }
+    .progress { height: 8px; background: #0b1220; border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+    .progress > div { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent2), var(--accent)); transition: width 240ms ease; }
+    .content { max-width: 960px; margin: 0 auto; padding: 20px; }
+    .card { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.08)); border: 1px solid var(--border); border-radius: 16px; padding: 22px; backdrop-filter: blur(6px); box-shadow: var(--shadow); }
+    .prompt { font-size: 22px; font-weight: 700; line-height: 1.35; margin-bottom: 14px; }
+    .subtle { color: var(--muted); font-size: 14px; }
+
+    .options { display: grid; gap: 10px; margin-top: 10px; }
+    .option { display: flex; gap: 10px; align-items: flex-start; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: transform 110ms ease, border-color 110ms ease; }
+    .option:hover { transform: translateY(-1px); border-color: #2a3b52; }
+    .option input { margin-top: 4px; }
+
+    .notes { margin-top: 12px; }
+    .notes label { color: var(--muted); font-size: 14px; }
+    .notes textarea { width: 100%; min-height: 80px; border-radius: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--text); padding: 10px; resize: vertical; }
+
+    .nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 16px; }
+    .btn { appearance: none; border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 12px; padding: 12px 16px; font-weight: 600; cursor: pointer; transition: transform 110ms ease, border-color 110ms ease; }
+    .btn:hover { transform: translateY(-1px); border-color: #2a3b52; }
+    .btn.primary { background: linear-gradient(90deg, var(--accent2), var(--accent)); border: none; color: #0b1220; }
+
+    /* Report */
+    .report-grid { display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 16px; }
+    .report-block h3 { margin: 0 0 10px; }
+    pre.report-text { white-space: pre-wrap; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--text); max-height: 520px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    thead { background: rgba(255,255,255,0.03); }
+    tfoot td { font-weight: 700; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.35); color: #86efac; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="progress" aria-label="progress"><div id="progressBar"></div></div>
+      <div class="subtle" id="progressText" style="margin-top:8px">Step 1</div>
+    </div>
+    <main class="content">
+      <div class="card" id="stepContainer"></div>
+    </main>
+    <footer class="subtle" style="text-align:center; padding: 12px 16px;">Interview Evaluation Wizard — Typeform-style</footer>
+  </div>
+
+  <script>
+    // Questions (copied from assessment.html)
+    const questions = [
+      {"id":"responsibilityMistake","prompt":"Tell me about a mistake you made. What did you do next?","dimension":"responsibilityOwnership","weight":5,"options":[{"label":"Owns it; informs stakeholders; fixes root cause; adds prevention","value":5},{"label":"Owns it; fixes; partial prevention","value":4},{"label":"Admits; fixes; no prevention","value":3},{"label":"Minimizes; shares blame; vague fix","value":2},{"label":"Denies/blames; no fix","value":1}]},
+      {"id":"dependencySlip","prompt":"A dependency slips and the deadline is at risk. What do you do?","dimension":"solutionOrientation","weight":5,"options":[{"label":"Replans; proposes options; communicates risks; protects outcome","value":5},{"label":"Escalates early; offers 1–2 options","value":4},{"label":"Waits for guidance; basic escalation","value":3},{"label":"Passively waits; blames dependency","value":2},{"label":"Gives up; ‘not my job’","value":1}]},
+      {"id":"speedQualityBalance","prompt":"How do you balance speed, quality, and maintainability?","dimension":"communicationInsight","weight":4,"options":[{"label":"Names trade-offs + practices (tests, reviews, standards) with example","value":5},{"label":"States practices with some example","value":4},{"label":"General talk; no clear example","value":3},{"label":"Chooses speed over all; fix later","value":2},{"label":"No framework; vague answer","value":1}]},
+      {"id":"scopeNegotiation","prompt":"Stakeholder wants more in same timeline. What’s your approach?","dimension":"accountabilityStakeholders","weight":4,"options":[{"label":"Negotiates scope with data; offers phased options; confirms plan","value":5},{"label":"Pushback with some data; suggests 1 option","value":4},{"label":"Escalates; waits for decision","value":3},{"label":"Says yes to everything; risk unaddressed","value":2},{"label":"Avoids convo; lets plan fail","value":1}]},
+      {"id":"learnNewSkill","prompt":"Share a recent skill you learned to solve a work problem.","dimension":"growthMindset","weight":4,"options":[{"label":"Self-driven; fast learning; applied to impact; measurable result","value":5},{"label":"Learned and applied; some impact","value":4},{"label":"Learned but not applied","value":3},{"label":"Talked about learning; no action","value":2},{"label":"No learning example","value":1}]},
+      {"id":"conflictDisagree","prompt":"You disagreed with a lead/peer. How did you handle it?","dimension":"teamFitCollaboration","weight":4,"options":[{"label":"Respectful challenge with data; aligns after decision; reflects","value":5},{"label":"Shares view; accepts decision","value":4},{"label":"Complies silently","value":3},{"label":"Argues/defensive; slow to align","value":2},{"label":"Undermines decision","value":1}]},
+      {"id":"priorityTradeoffs","prompt":"Too many tasks, limited time. What do you do first?","dimension":"problemSolving","weight":4,"options":[{"label":"Clarifies goals; sequences by impact/risk; confirms with stakeholders","value":5},{"label":"Uses priority rules; checks with manager","value":4},{"label":"Picks easiest/quick wins without alignment","value":3},{"label":"Random switching; multitasks poorly","value":2},{"label":"Stalls; asks what to do for all","value":1}]},
+      {"id":"stakeholderComms","prompt":"How do you keep stakeholders informed during uncertainty?","dimension":"communicationInsight","weight":3,"options":[{"label":"Sets cadence; shares facts/risks/options; asks for decisions","value":5},{"label":"Regular updates; some risks","value":4},{"label":"Ad-hoc updates; little risk detail","value":3},{"label":"Updates only when asked","value":2},{"label":"No updates","value":1}]},
+      {"id":"estimationAccuracy","prompt":"Describe how you estimate effort and improve accuracy over time.","dimension":"practicalThinking","weight":3,"options":[{"label":"Breaks work; uses historicals/buffers; tracks vs. actuals to learn","value":5},{"label":"Breaks work; some tracking","value":4},{"label":"Rough guesses; no tracking","value":3},{"label":"Guesses under pressure; misses often","value":2},{"label":"Avoids estimating","value":1}]},
+      {"id":"deadlinePressure","prompt":"Share a story of shipping under pressure. What ensured success?","dimension":"responsibilityOwnership","weight":4,"options":[{"label":"Clear plan; risk log; checklists; quality gates; outcome achieved","value":5},{"label":"Plan + some controls; delivered","value":4},{"label":"Worked late; relied on heroics","value":3},{"label":"Chaotic push; quality debt","value":2},{"label":"Missed; blames others","value":1}]},
+      {"id":"documentationHabits","prompt":"What do you document and why?","dimension":"practicalThinking","weight":2,"options":[{"label":"Docs for onboarding, ops, decisions; kept current","value":5},{"label":"Docs main flows; updates sometimes","value":4},{"label":"Minimal notes; ad-hoc","value":3},{"label":"Rarely documents","value":2},{"label":"Does not document","value":1}]},
+      {"id":"testingApproach","prompt":"How do you prevent regressions?","dimension":"solutionOrientation","weight":3,"options":[{"label":"Automated tests + reviews + CI checks; example given","value":5},{"label":"Tests + reviews; limited CI","value":4},{"label":"Manual checks only","value":3},{"label":"Spot checks sometimes","value":2},{"label":"No prevention approach","value":1}]},
+      {"id":"feedbackReceiving","prompt":"Describe tough feedback you received and what changed after.","dimension":"growthMindset","weight":3,"options":[{"label":"Thanks; extracts lesson; visible change; follow-up proof","value":5},{"label":"Accepts; some change","value":4},{"label":"Accepts; no clear change","value":3},{"label":"Defensive at first; minor change","value":2},{"label":"Rejects/blames; no change","value":1}]},
+      {"id":"feedbackGiving","prompt":"How do you give constructive feedback to a teammate?","dimension":"teamFitCollaboration","weight":3,"options":[{"label":"Private, specific, actionable; agrees next steps; follows up","value":5},{"label":"Specific; suggests next steps","value":4},{"label":"General; no follow-up","value":3},{"label":"Public/harsh; vague","value":2},{"label":"Avoids giving feedback","value":1}]},
+      {"id":"ethicsIntegrity","prompt":"Share a time you chose the right thing over the easy thing.","dimension":"professionalism","weight":4,"options":[{"label":"Names policy/risk; protects user/company; documents decision","value":5},{"label":"Chose right; informed lead","value":4},{"label":"Chose right; low impact","value":3},{"label":"Chose easy; minor risk","value":2},{"label":"Chose easy; ignored risk","value":1}]},
+      {"id":"dataDecision","prompt":"Example of using data to make a decision.","dimension":"practicalThinking","weight":3,"options":[{"label":"Defines metric; tests hypothesis; decision + result","value":5},{"label":"Uses metrics to compare options","value":4},{"label":"Some numbers; weak link to decision","value":3},{"label":"Anecdotes only","value":2},{"label":"No data use","value":1}]},
+      {"id":"initiativeBeyondRole","prompt":"When did you go beyond your job description to fix something?","dimension":"responsibilityOwnership","weight":4,"options":[{"label":"Proactive fix with measurable impact; shared learning","value":5},{"label":"Proactive fix; local impact","value":4},{"label":"Small extra effort","value":3},{"label":"Only when told","value":2},{"label":"Never","value":1}]},
+      {"id":"crossFunctional","prompt":"Describe effective work with another function (e.g., QA, Design, Sales).","dimension":"teamFitCollaboration","weight":3,"options":[{"label":"Shared goals; clear roles; resolved conflicts; success story","value":5},{"label":"Good handoffs; delivered","value":4},{"label":"Basic coordination","value":3},{"label":"Friction; unresolved issues","value":2},{"label":"Avoids cross-team work","value":1}]},
+      {"id":"customerFocus","prompt":"Tell me how you incorporated user/customer feedback.","dimension":"solutionOrientation","weight":3,"options":[{"label":"Synthesizes feedback; prioritizes by impact; ships change; measures","value":5},{"label":"Implements key feedback","value":4},{"label":"Implements ad-hoc","value":3},{"label":"Ignores/argues with feedback","value":2},{"label":"No feedback process","value":1}]},
+      {"id":"retrospectionKaizen","prompt":"What process improvement did you drive recently?","dimension":"growthMindset","weight":3,"options":[{"label":"Identified waste; piloted change; measured better outcomes","value":5},{"label":"Suggested & adopted small improvement","value":4},{"label":"Suggested only","value":3},{"label":"Complains; no action","value":2},{"label":"No interest in improvement","value":1}]},
+      {"id":"riskManagement","prompt":"How do you surface and manage risks?","dimension":"problemSolving","weight":3,"options":[{"label":"Maintains risk log; owners/mitigations; reviews cadence","value":5},{"label":"Flags risks early; proposes mitigations","value":4},{"label":"Flags when late","value":3},{"label":"Flags without mitigations","value":2},{"label":"Doesn’t flag risks","value":1}]},
+      {"id":"ambiguityHandling","prompt":"You get an unclear task. What are your next steps?","dimension":"problemSolving","weight":4,"options":[{"label":"Clarifies outcome; drafts proposal; validates; proceeds","value":5},{"label":"Asks questions; proceeds with partial plan","value":4},{"label":"Waits for full spec","value":3},{"label":"Starts blindly; rework later","value":2},{"label":"Stuck; no progress","value":1}]},
+      {"id":"timeManagement","prompt":"How do you protect focused time and meet commitments?","dimension":"professionalism","weight":2,"options":[{"label":"Blocks focus time; batches comms; tracks commitments","value":5},{"label":"Uses calendar & lists; mostly on time","value":4},{"label":"Works off memory; mixed results","value":3},{"label":"Frequently late; excuses","value":2},{"label":"No system; misses often","value":1}]},
+      {"id":"qualityBar","prompt":"How do you define and enforce your quality bar?","dimension":"communicationInsight","weight":3,"options":[{"label":"Clear definition; checklists/DoD; examples; enforces with team","value":5},{"label":"Clear personal standards; examples","value":4},{"label":"General idea; few examples","value":3},{"label":"Vague; relies on QA only","value":2},{"label":"No quality definition","value":1}]},
+      {"id":"ownershipBoundary","prompt":"A problem appears ‘outside your lane’. What do you do?","dimension":"responsibilityOwnership","weight":4,"options":[{"label":"Takes responsibility to drive resolution; loops in owners; tracks to done","value":5},{"label":"Raises promptly; helps where possible","value":4},{"label":"Informs owner; stops there","value":3},{"label":"Ignores; ‘not mine’","value":2},{"label":"Blames; obstructs","value":1}]},
+      {"id":"domainBelief","prompt":"What’s a core belief you hold about your domain? How does it guide decisions?","dimension":"strategicThinking","weight":5,"options":[{"label":"Deep belief; used in decisions; consistent examples","value":5},{"label":"Clear belief; sometimes applied","value":4},{"label":"General belief; weak link to work","value":3},{"label":"Vague belief; little evidence","value":2},{"label":"No articulated belief","value":1}]},
+      {"id":"leadershipPotential","prompt":"Describe a time you led without authority.","dimension":"teamFitCollaboration","weight":3,"options":[{"label":"Aligns people; removes blockers; delivers result","value":5},{"label":"Influences peers; helps deliver","value":4},{"label":"Coordinates tasks only","value":3},{"label":"Tells others what to do; no buy-in","value":2},{"label":"Avoids leading","value":1}]}
+    ];
+
+    const dimensionMaxScore = 5;
+
+    // Wizard State
+    const stepContainer = document.getElementById('stepContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // steps: 0 = candidate info, then each question
+    const totalSteps = 1 + questions.length; // candidate info + N questions
+    let stepIndex = 0; // start at 0
+
+    // answers & timers
+    const answers = {}; // qid -> selected value (1..5)
+    const notes = {};   // qid -> text
+    const perQuestionSeconds = {}; // qid -> seconds
+    let stepStartTs = null;
+    let totalSeconds = 0;
+
+    // Candidate fields
+    let candidateName = '';
+    let candidateRole = '';
+    let interviewerNames = '';
+
+    // DSM mapping and weights
+    const DSM_WEIGHTS = {
+      Responsibility: 0.20,
+      "Problem Solving": 0.20,
+      Communication: 0.15,
+      "Team Fit": 0.15,
+      "Growth Mindset": 0.15,
+      "Practical Thinking": 0.15
+    };
+
+    const DIM_TO_DSM = {
+      responsibilityOwnership: 'Responsibility',
+      accountabilityStakeholders: 'Responsibility',
+      professionalism: 'Responsibility',
+      problemSolving: 'Problem Solving',
+      solutionOrientation: 'Problem Solving',
+      riskManagement: 'Problem Solving',
+      ambiguityHandling: 'Problem Solving',
+      priorityTradeoffs: 'Problem Solving',
+      communicationInsight: 'Communication',
+      stakeholderComms: 'Communication',
+      qualityBar: 'Communication',
+      teamFitCollaboration: 'Team Fit',
+      conflictDisagree: 'Team Fit',
+      crossFunctional: 'Team Fit',
+      feedbackGiving: 'Team Fit',
+      growthMindset: 'Growth Mindset',
+      retrospectionKaizen: 'Growth Mindset',
+      feedbackReceiving: 'Growth Mindset',
+      learnNewSkill: 'Growth Mindset',
+      practicalThinking: 'Practical Thinking',
+      estimationAccuracy: 'Practical Thinking',
+      documentationHabits: 'Practical Thinking',
+      dataDecision: 'Practical Thinking',
+      timeManagement: 'Practical Thinking',
+      customerFocus: 'Practical Thinking'
+    };
+
+    function gradeFromScore(score) {
+      // Map to nearest label where 5->A+, 4->A, 3->B, 2->C, 1->D/F
+      const r = Math.max(1, Math.min(5, Math.round(score)));
+      if (r === 5) return 'A+';
+      if (r === 4) return 'A';
+      if (r === 3) return 'B';
+      if (r === 2) return 'C';
+      return 'D/F';
+    }
+
+    function beginStepTimer() { stepStartTs = performance.now(); }
+
+    function endStepTimerAndAccumulate() {
+      if (stepStartTs == null) return;
+      const elapsedMs = performance.now() - stepStartTs;
+      stepStartTs = null;
+      const elapsedSec = elapsedMs / 1000;
+      totalSeconds += elapsedSec;
+      // If stepIndex>0, it's a question step
+      if (stepIndex > 0) {
+        const q = questions[stepIndex - 1];
+        perQuestionSeconds[q.id] = (perQuestionSeconds[q.id] || 0) + elapsedSec;
+      }
+    }
+
+    function updateProgress() {
+      const pct = ((stepIndex + 1) / totalSteps) * 100;
+      progressBar.style.width = pct.toFixed(1) + '%';
+      progressText.textContent = `Step ${stepIndex + 1} of ${totalSteps}`;
+    }
+
+    function renderCandidateInfo() {
+      stepContainer.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+        <div class="prompt">Candidate information</div>
+        <div style="display:grid; gap:10px; grid-template-columns: 1fr 1fr;">
+          <label>Candidate Name<br><input id="candidateName" type="text" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background: var(--panel); color: var(--text);" /></label>
+          <label>Position / Role<br><input id="candidateRole" type="text" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background: var(--panel); color: var(--text);" /></label>
+        </div>
+        <div style="margin-top:10px;">
+          <label>Interviewer(s)<br><input id="interviewerNames" type="text" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); background: var(--panel); color: var(--text);" /></label>
+        </div>
+        <div class="nav">
+          <button class="btn" disabled>Back</button>
+          <div>
+            <button class="btn primary" id="nextBtn">Start</button>
+          </div>
+        </div>
+      `;
+      stepContainer.appendChild(wrap);
+
+      // restore if available
+      document.getElementById('candidateName').value = candidateName;
+      document.getElementById('candidateRole').value = candidateRole;
+      document.getElementById('interviewerNames').value = interviewerNames;
+
+      document.getElementById('nextBtn').addEventListener('click', () => {
+        candidateName = document.getElementById('candidateName').value.trim();
+        candidateRole = document.getElementById('candidateRole').value.trim();
+        interviewerNames = document.getElementById('interviewerNames').value.trim();
+        goNext();
+      });
+    }
+
+    function renderQuestionStep(q) {
+      stepContainer.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+        <div class="prompt">${q.prompt}</div>
+        <div class="subtle">Dimension: <span class="pill">${q.dimension}</span> · Weight: ${q.weight}</div>
+        <div class="options" id="options"></div>
+        <div class="notes">
+          <label>Notes / justification (optional)</label>
+          <textarea id="notesBox"></textarea>
+        </div>
+        <div class="nav">
+          <button class="btn" id="backBtn">Back</button>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <span class="subtle" id="timerHint">Time on this step: 0.0s</span>
+            <button class="btn primary" id="nextBtn">Next</button>
+          </div>
+        </div>
+      `;
+      stepContainer.appendChild(wrap);
+
+      const optHost = wrap.querySelector('#options');
+      q.options.forEach(opt => {
+        const lbl = document.createElement('label');
+        lbl.className = 'option';
+        lbl.innerHTML = `<input type="radio" name="opt_${q.id}" value="${opt.value}" /> <div>${opt.label}</div>`;
+        lbl.addEventListener('click', (e) => {
+          const input = lbl.querySelector('input');
+          input.checked = true;
+        });
+        optHost.appendChild(lbl);
+      });
+
+      // restore prior selection/notes
+      if (answers[q.id]) {
+        const radio = optHost.querySelector(`input[value="${answers[q.id]}"]`);
+        if (radio) radio.checked = true;
+      }
+      wrap.querySelector('#notesBox').value = notes[q.id] || '';
+
+      wrap.querySelector('#backBtn').addEventListener('click', () => {
+        saveCurrent(q);
+        goBack();
+      });
+      wrap.querySelector('#nextBtn').addEventListener('click', () => {
+        saveCurrent(q);
+        goNext();
+      });
+
+      // local timer hint update
+      const timerSpan = wrap.querySelector('#timerHint');
+      const tStart = performance.now();
+      const interval = setInterval(() => {
+        if (stepStartTs == null) { clearInterval(interval); return; }
+        const sec = (performance.now() - tStart) / 1000;
+        timerSpan.textContent = `Time on this step: ${sec.toFixed(1)}s`;
+      }, 200);
+    }
+
+    function saveCurrent(q) {
+      // collect selection
+      const radios = stepContainer.querySelectorAll(`input[name="opt_${q.id}"]`);
+      let sel = null;
+      radios.forEach(r => { if (r.checked) sel = parseInt(r.value, 10); });
+      answers[q.id] = sel || null;
+      notes[q.id] = (stepContainer.querySelector('#notesBox')?.value || '').trim();
+    }
+
+    function goNext() {
+      endStepTimerAndAccumulate();
+      stepIndex = Math.min(totalSteps - 1, stepIndex + 1);
+      renderCurrent();
+    }
+    function goBack() {
+      endStepTimerAndAccumulate();
+      stepIndex = Math.max(0, stepIndex - 1);
+      renderCurrent();
+    }
+
+    function renderCurrent() {
+      updateProgress();
+      if (stepIndex === 0) {
+        renderCandidateInfo();
+      } else if (stepIndex > 0 && stepIndex < totalSteps) {
+        renderQuestionStep(questions[stepIndex - 1]);
+      }
+      beginStepTimer();
+      if (stepIndex === totalSteps - 1) replaceNextWithSubmit();
+    }
+
+    function replaceNextWithSubmit() {
+      // on last step, change Next to Submit
+      const nextBtn = document.getElementById('nextBtn');
+      if (!nextBtn) return;
+      nextBtn.textContent = 'Finish & Generate Report';
+      nextBtn.onclick = () => {
+        endStepTimerAndAccumulate();
+        generateReportView();
+      };
+    }
+
+    function computeScores() {
+      const scores = {}; // qid -> numeric 0..5
+      questions.forEach(q => { scores[q.id] = answers[q.id] || 0; });
+      // overall normalized weighted 0..5
+      let totalWeighted = 0, totalWeight = 0;
+      questions.forEach(q => {
+        totalWeighted += ((scores[q.id] || 0) / dimensionMaxScore) * q.weight;
+        totalWeight += q.weight;
+      });
+      const normalized = totalWeight > 0 ? (totalWeighted / totalWeight) : 0; // 0..1
+      const finalScore = normalized * 5; // 0..5
+
+      // DSM dimension averages 0..5
+      const dsmAgg = {}; // {category: {sum,count}}
+      questions.forEach(q => {
+        const cat = DIM_TO_DSM[q.dimension];
+        if (!cat) return;
+        dsmAgg[cat] = dsmAgg[cat] || { sum: 0, cnt: 0 };
+        dsmAgg[cat].sum += (scores[q.id] || 0);
+        dsmAgg[cat].cnt += 1;
+      });
+      const dsmScores = {}; // category -> avg 0..5
+      Object.keys(dsmAgg).forEach(cat => {
+        dsmScores[cat] = dsmAgg[cat].cnt ? (dsmAgg[cat].sum / dsmAgg[cat].cnt) : 0;
+      });
+
+      // weighted DSM final (should align closely with finalScore but based on DSM weights)
+      let dsmWeighted = 0;
+      Object.keys(DSM_WEIGHTS).forEach(cat => {
+        dsmWeighted += (dsmScores[cat] || 0) * DSM_WEIGHTS[cat];
+      });
+
+      return { scores, finalScore, dsmScores, dsmWeighted };
+    }
+
+    function generateReportView() {
+      const { scores, finalScore, dsmScores, dsmWeighted } = computeScores();
+      const category = gradeFromScore(finalScore);
+
+      // build report JSON for console / export
+      const reportJson = {
+        candidateName, candidateRole, interviewerNames,
+        finalScore: +finalScore.toFixed(2),
+        category,
+        totalTimeSeconds: +totalSeconds.toFixed(1),
+        items: questions.map(q => ({
+          id: q.id,
+          prompt: q.prompt,
+          selectedAnswer: (q.options.find(o => o.value === (answers[q.id]||0))?.label) || '',
+          score: scores[q.id] || 0,
+          notes: notes[q.id] || '',
+          weight: q.weight,
+          dimension: q.dimension,
+          timeSeconds: +(perQuestionSeconds[q.id] || 0).toFixed(1)
+        })),
+        DSM: {
+          weights: DSM_WEIGHTS,
+          scores: dsmScores,
+          weightedTotal: +dsmWeighted.toFixed(2)
+        }
+      };
+      console.log('JSON Report', reportJson);
+
+      // left: detailed text, right: DSM table
+      const textParts = [];
+      textParts.push(`Candidate: ${candidateName}`);
+      textParts.push(`Role: ${candidateRole}`);
+      textParts.push(`Interviewers: ${interviewerNames}`);
+      textParts.push('');
+      textParts.push(`Final Score: ${finalScore.toFixed(2)} / 5.0`);
+      textParts.push(`Category: ${category}`);
+      textParts.push(`Total Time: ${totalSeconds.toFixed(1)}s`);
+      textParts.push('');
+      textParts.push('=== Detailed Responses ===');
+      questions.forEach(q => {
+        textParts.push('');
+        textParts.push(`Prompt: ${q.prompt}`);
+        const ansLabel = (q.options.find(o => o.value === (answers[q.id]||0))?.label) || '';
+        textParts.push(`Selected Answer: ${ansLabel} (Score: ${scores[q.id] || 0})`);
+        const t = perQuestionSeconds[q.id] || 0;
+        textParts.push(`Time Spent: ${t.toFixed(1)}s`);
+        if ((notes[q.id]||'').length) textParts.push(`Notes: ${notes[q.id]}`);
+      });
+
+      // DSM table HTML
+      const dsmRows = Object.keys(DSM_WEIGHTS).map(cat => {
+        const sc = dsmScores[cat] || 0;
+        const grade = gradeFromScore(sc);
+        const weightPct = Math.round(DSM_WEIGHTS[cat] * 100) + '%';
+        return `<tr><td>${cat}</td><td>${weightPct}</td><td>${sc.toFixed(2)}</td><td>${grade}</td></tr>`;
+      }).join('');
+
+      stepContainer.innerHTML = `
+        <div class="report-grid">
+          <div class="report-block">
+            <h3>Generated Report</h3>
+            <pre class="report-text">${textParts.join('\n')}</pre>
+          </div>
+          <div class="report-block">
+            <h3>Decision Support Matrix (HR)</h3>
+            <table>
+              <thead><tr><th>Dimension</th><th>Weight</th><th>Score</th><th>Grade</th></tr></thead>
+              <tbody>${dsmRows}</tbody>
+              <tfoot><tr><td colspan="2">Weighted Total</td><td colspan="2">${dsmWeighted.toFixed(2)} / 5.00</td></tr></tfoot>
+            </table>
+            <div class="subtle" style="margin-top:8px;">Grades: A+(5), A(4), B(3), C(2), D/F(1)</div>
+            <div style="margin-top:14px; display:flex; gap:8px;">
+              <button class="btn" id="restartBtn">Restart</button>
+              <button class="btn primary" id="downloadBtn">Download JSON</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('restartBtn').addEventListener('click', () => {
+        // reset state
+        stepIndex = 0;
+        totalSeconds = 0;
+        Object.keys(perQuestionSeconds).forEach(k => delete perQuestionSeconds[k]);
+        renderCurrent();
+      });
+      document.getElementById('downloadBtn').addEventListener('click', () => {
+        const blob = new Blob([JSON.stringify(reportJson, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `interview-report-${Date.now()}.json`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+      updateProgress();
+    }
+
+    // Init
+    renderCurrent();
+  </script>
+</body>
+</html>
