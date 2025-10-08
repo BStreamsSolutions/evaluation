@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Solvefy Interview Evaluation Portal — AI Engineer Hiring Assessment</title>
+  <style>
+    :root{
+      --brand: #6a5acd;
+      --brand-2: #00c2ff;
+      --ink:#111827; --muted:#6b7280; --bg:#f8fafc; --card:#ffffff; --ring:#e5e7eb;
+    }
+    *{box-sizing:border-box} body{font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;margin:0;background:var(--bg);color:var(--ink)}
+    header{background:linear-gradient(90deg,var(--brand),var(--brand-2));color:#fff;padding:20px}
+    .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+    .brand{display:flex;gap:16px;align-items:center}
+    .brand .logo{width:56px;height:56px;border-radius:8px;background:#fff1;box-shadow:0 8px 24px rgba(0,0,0,.15)}
+    h1{margin:0;font-size:28px} .subtitle{opacity:.9}
+    main{padding:24px 0}
+    .card{background:var(--card);border:1px solid var(--ring);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 6px 18px rgba(17,24,39,.04)}
+    h2{margin:4px 0 14px 0;font-size:20px}
+    label{font-weight:600}
+    input[type=text], select{width:100%;padding:10px 12px;border:1px solid var(--ring);border-radius:10px}
+    textarea{width:100%;min-height:60px;padding:10px 12px;border:1px solid var(--ring);border-radius:10px}
+    .grid{display:grid;gap:14px}
+    .grid-2{grid-template-columns:1fr 1fr} .grid-3{grid-template-columns:repeat(3,1fr)}
+    @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+    .q{padding:14px;border:1px solid var(--ring);border-radius:12px;background:#fff}
+    .prompt{font-weight:700;margin-bottom:8px}
+    .opt{display:block;margin:6px 0}
+    .muted{color:var(--muted);font-size:12px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button{background:var(--brand);color:#fff;border:none;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
+    button.secondary{background:#fff;color:var(--brand);border:1px solid var(--brand)}
+    button.ghost{background:#fff;color:#111;border:1px solid var(--ring)}
+    #reportBox{white-space:pre-wrap;background:#0b1021;color:#e5e7eb;border-radius:10px;padding:14px;overflow:auto;max-height:420px;border:1px solid #0f172a}
+    table{border-collapse:collapse;width:100%} th,td{border:1px solid var(--ring);padding:8px;text-align:left;font-size:14px} th{background:#f3f4f6}
+    canvas{max-width:100%;height:260px;border:1px solid var(--ring);border-radius:10px;background:#fff}
+    .footer{padding:20px;text-align:center;color:var(--muted);font-size:12px}
+    @media print{ header,.actions{display:none} body{background:#fff} .card{box-shadow:none;border-color:#ddd} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap brand" aria-label="Solvefy branding">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>Solvefy Interview Evaluation Portal</h1>
+        <div class="subtitle">AI Engineer Hiring Assessment</div>
+      </div>
+    </div>
+  </header>
+  <main class="wrap">
+    <section class="card" aria-labelledby="candSec"><h2 id="candSec">Candidate & Interview Details</h2>
+      <div class="grid grid-3" id="candGrid"></div>
+    </section>
+
+    <section class="card" aria-labelledby="qSec"><h2 id="qSec">Questions (MCQ + Optional Notes)</h2>
+      <div id="questions"></div>
+      <div class="muted" style="margin-top:8px">Tip: Select the option that best reflects observed behavior. Use notes only if needed.</div>
+    </section>
+
+    <section class="card" aria-labelledby="hrSec"><h2 id="hrSec">HR Summary & Decision</h2>
+      <div class="grid grid-3">
+        <div><label>Overall Impression</label><select id="overallImpression"></select></div>
+        <div><label>Recommended Role Fit</label><select id="roleFit"></select></div>
+        <div><label>Decision</label><select id="decision"></select></div>
+      </div>
+      <div style="margin-top:12px"><label>Additional Comments (optional)</label><textarea id="hrComments"></textarea></div>
+    </section>
+
+    <section class="card"><h2>Actions</h2>
+      <div class="actions">
+        <button id="btnGenerate">Generate Report & Score</button>
+        <button class="secondary" id="btnDownloadJson">Download JSON</button>
+        <button class="ghost" id="btnPrint">Print / Save PDF</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="repSec"><h2 id="repSec">Generated Report</h2>
+      <div id="reportBox">No report yet.</div>
+    </section>
+
+    <section class="card" aria-labelledby="dmSec"><h2 id="dmSec">Decision Matrix Alignment</h2>
+      <div style="overflow:auto">
+        <table id="matrixTable">
+          <thead><tr><th>Dimension</th><th>Weighted Score</th><th>Max Possible</th><th>Alignment %</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px"><canvas id="matrixChart" width="1000" height="260" aria-label="Decision Matrix Chart"></canvas></div>
+    </section>
+
+    <div class="footer">© Solvefy — Structured, fair, and fast interviews.</div>
+  </main>
+
+<script>
+const CONFIG = {
+  "topic": "AI Engineer Hiring Assessment",
+  "brand": {
+    "company": "Solvefy",
+    "title": "Solvefy Interview Evaluation Portal",
+    "primary": "#6a5acd",
+    "accent": "#00c2ff"
+  },
+  "candidateFields": ["Candidate Name","Position / Role","Interviewer(s)","Interview Type","Date"],
+  "hrSummary": {
+    "overallImpressionOptions": ["Excellent","Strong","Good","Average","Below Average","Poor"],
+    "roleFitOptions": ["Senior","Mid","Junior","Team Lead","Project Manager","Other / Not sure"],
+    "decisionOptions": ["Hire","Strong Consider","Hold","Reject"]
+  },
+  "scale": { "min": 1, "max": 5 },
+  "categoryBands": [
+    { "min": 4.5, "label": "A+" },
+    { "min": 4.0, "label": "A" },
+    { "min": 3.5, "label": "B" },
+    { "min": 2.5, "label": "C" },
+    { "min": 1.8, "label": "D" },
+    { "min": 1.0, "label": "E" },
+    { "min": -999, "label": "F" }
+  ],
+  "questions": [
+    {
+      "id": "ml_fundamentals",
+      "prompt": "Evaluate their grasp of ML fundamentals (bias/variance, overfitting, regularization, optimization).",
+      "dimension": "ML Theory & Fundamentals",
+      "weight": 15,
+      "options": [
+        { "label": "Explains concepts crisply, derives trade-offs, and applies to real cases", "value": 5 },
+        { "label": "Solid definitions with practical intuition and examples", "value": 4 },
+        { "label": "Working knowledge; partial intuition; relies on buzzwords", "value": 3 },
+        { "label": "Fragmented understanding; incorrect or shallow explanations", "value": 2 },
+        { "label": "Cannot explain core concepts", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "data_practices",
+      "prompt": "How do they approach data readiness (quality checks, leakage prevention, splits, experiment design)?",
+      "dimension": "Data Handling & Experimentation",
+      "weight": 15,
+      "options": [
+        { "label": "Designs robust pipelines; anticipates leakage; uses stratified/time splits with clear hypotheses", "value": 5 },
+        { "label": "Good checks and sound splits; documents assumptions", "value": 4 },
+        { "label": "Basic EDA and standard splits; limited rigor", "value": 3 },
+        { "label": "Ad-hoc checks; risks leakage; unclear hypotheses", "value": 2 },
+        { "label": "Neglects data quality and validation", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "coding_algo",
+      "prompt": "Assess coding and algorithmic problem solving relevant to AI systems (Python, DS&A).",
+      "dimension": "Coding & Algorithms",
+      "weight": 15,
+      "options": [
+        { "label": "Clean, idiomatic code; selects optimal structures; explains complexity and trade-offs", "value": 5 },
+        { "label": "Correct and readable; minor inefficiencies", "value": 4 },
+        { "label": "Works with guidance; average complexity awareness", "value": 3 },
+        { "label": "Bug-prone or inefficient solutions", "value": 2 },
+        { "label": "Struggles to implement working code", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "model_eval",
+      "prompt": "Model evaluation strategy (metrics selection, error analysis, offline vs online, A/B).",
+      "dimension": "Evaluation & Measurement",
+      "weight": 15,
+      "options": [
+        { "label": "Chooses task-appropriate metrics; deep error analysis; understands offline/online gaps and A/B pitfalls", "value": 5 },
+        { "label": "Selects good metrics; performs reasonable analysis", "value": 4 },
+        { "label": "Uses common metrics; surface-level analysis", "value": 3 },
+        { "label": "Mismatched metrics; weak validation", "value": 2 },
+        { "label": "No clear evaluation approach", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "mlops_deploy",
+      "prompt": "Experience with MLOps & deployment (versioning, monitoring, data/model drift, CI/CD).",
+      "dimension": "MLOps & Production Readiness",
+      "weight": 15,
+      "options": [
+        { "label": "Has shipped/operated ML services; strong monitoring and rollback strategies", "value": 5 },
+        { "label": "Worked on deployments with thoughtful observability", "value": 4 },
+        { "label": "Some exposure; relies on others for ops", "value": 3 },
+        { "label": "Toy-only experience; minimal ops awareness", "value": 2 },
+        { "label": "No production deployment experience", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "genai_llm",
+      "prompt": "Applied GenAI/LLM skills (prompting, fine-tuning, RAG, evaluation, safety/guardrails).",
+      "dimension": "Applied GenAI Engineering",
+      "weight": 15,
+      "options": [
+        { "label": "Designs end-to-end LLM systems (RAG/fine-tune), solid evals, and safety mitigations", "value": 5 },
+        { "label": "Hands-on with prompts/RAG; reasonable evaluation", "value": 4 },
+        { "label": "Basic prompting; limited system design", "value": 3 },
+        { "label": "Superficial usage; copy-pastes patterns without understanding", "value": 2 },
+        { "label": "No practical GenAI experience", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "communication",
+      "prompt": "Clarity in communication and stakeholder management (cross-functional alignment, documentation).",
+      "dimension": "Communication & Stakeholder Management",
+      "weight": 10,
+      "options": [
+        { "label": "Crystal-clear, audience-aware; aligns constraints, risks, and timelines", "value": 5 },
+        { "label": "Clear and concise; sets expectations", "value": 4 },
+        { "label": "Generally clear; may omit context", "value": 3 },
+        { "label": "Unclear or overly technical; causes confusion", "value": 2 },
+        { "label": "Poor communication; misaligns stakeholders", "value": 1 }
+      ],
+      "notesEnabled": true
+    },
+    {
+      "id": "ownership_delivery",
+      "prompt": "Ownership and delivery under constraints (prioritization, trade-offs, accountability).",
+      "dimension": "Ownership & Delivery",
+      "weight": 15,
+      "options": [
+        { "label": "Proactively drives outcomes, communicates risks, delivers and hardens systems", "value": 5 },
+        { "label": "Owns scope, delivers reliably, follows up", "value": 4 },
+        { "label": "Delivers with guidance; limited anticipation of risks", "value": 3 },
+        { "label": "Reactive; slips on commitments", "value": 2 },
+        { "label": "Avoids responsibility; blames external factors", "value": 1 }
+      ],
+      "notesEnabled": true
+    }
+  ]
+}; // <= embed the CONFIG JSON here exactly
+
+const SCALE_MIN = CONFIG.scale.min, SCALE_MAX = CONFIG.scale.max;
+
+function el(tag, attrs={}, children=[]){ const e=document.createElement(tag); Object.entries(attrs).forEach(([k,v])=>{ if(k==='class') e.className=v; else if(k==='text') e.textContent=v; else e.setAttribute(k,v); }); (Array.isArray(children)?children:[children]).filter(Boolean).forEach(c=>e.appendChild(c)); return e; }
+
+function mountCandidateFields(){
+  const grid = document.getElementById('candGrid');
+  grid.innerHTML = '';
+  const labels = CONFIG.candidateFields || ["Candidate Name","Position / Role","Interviewer(s)","Interview Type","Date"];
+  labels.forEach(lbl=>{
+    const id = lbl.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+    const input = el('input', { type:'text', id:id, placeholder: lbl });
+    grid.appendChild(el('div', {}, [ el('label',{text:lbl}), input ]));
+  });
+}
+
+function mountHrSummary(){
+  const oiSel = document.getElementById('overallImpression');
+  const rfSel = document.getElementById('roleFit');
+  const dSel  = document.getElementById('decision');
+  (CONFIG.hrSummary?.overallImpressionOptions||[]).forEach(v=>oiSel.appendChild(el('option',{text:v})));
+  (CONFIG.hrSummary?.roleFitOptions||[]).forEach(v=>rfSel.appendChild(el('option',{text:v})));
+  (CONFIG.hrSummary?.decisionOptions||[]).forEach(v=>dSel.appendChild(el('option',{text:v})));
+}
+
+function mountQuestions(){
+  const root = document.getElementById('questions'); root.innerHTML='';
+  CONFIG.questions.forEach(q=>{
+    const block = el('div',{class:'q'});
+    block.appendChild(el('div',{class:'prompt',text:q.prompt}));
+    q.options.forEach(opt=>{
+      const id = `opt_${q.id}_${opt.value}`;
+      const radio = el('input',{type:'radio', name:`opt_${q.id}`, id, value:opt.value});
+      const lbl   = el('label',{class:'opt', for:id}, [radio, document.createTextNode(' '+opt.label)]);
+      block.appendChild(lbl);
+    });
+    if(q.notesEnabled){
+      block.appendChild(el('div',{class:'muted',text:'Notes / justification (optional)'}));
+      block.appendChild(el('textarea',{id:`notes_${q.id}`}));
+    }
+    root.appendChild(block);
+  });
+}
+
+function collectCandidate(){
+  const out={};
+  (CONFIG.candidateFields||[]).forEach(lbl=>{
+    const id = lbl.toLowerCase().replace(/[^a-z0-9]+/g,'_');
+    const v = (document.getElementById(id)?.value||'').trim();
+    out[id]=v;
+  });
+  // Best-effort mapping for standard keys:
+  return {
+    name: out['candidate_name']||'',
+    role: out['position_role']||'',
+    interviewType: out['interview_type']||'',
+    date: out['date']||'',
+    _raw: out
+  };
+}
+
+function collectQA(){
+  const answers={}, scores={}, notes={};
+  CONFIG.questions.forEach(q=>{
+    const radios = document.getElementsByName('opt_'+q.id);
+    let sel = null; for(const r of radios){ if(r.checked){ sel=parseInt(r.value); break; } }
+    scores[q.id] = sel || 0;
+    answers[q.id] = sel==null ? '' : (q.options.find(o=>o.value===sel)?.label||'');
+    notes[q.id] = (document.getElementById('notes_'+q.id)?.value||'').trim();
+  });
+  return {answers,scores,notes};
+}
+
+function computeFinal(scores){
+  let totalWeighted=0, totalWeight=0;
+  CONFIG.questions.forEach(q=>{
+    totalWeighted += ((scores[q.id]||0)/SCALE_MAX) * q.weight;
+    totalWeight   += q.weight;
+  });
+  const normalized = totalWeight ? (totalWeighted/totalWeight) : 0;
+  const finalScore = normalized * SCALE_MAX;
+  let category = (CONFIG.categoryBands||[]).find(b=>finalScore>=b.min)?.label || 'F';
+  return {finalScore, category};
+}
+
+function buildDecisionMatrix(scores){
+  const totals={}, maxes={};
+  CONFIG.questions.forEach(q=>{
+    totals[q.dimension] = (totals[q.dimension]||0) + (scores[q.id]||0)*q.weight;
+    maxes[q.dimension]  = (maxes[q.dimension] ||0) + (SCALE_MAX*q.weight);
+  });
+  return Object.keys(totals).map(dim=>{
+    const weighted = totals[dim], max = maxes[dim]||1;
+    const pct = (weighted/max)*100;
+    return { dimension:dim, weightedScore:weighted, maxPossible:max, percent:parseFloat(pct.toFixed(1)) };
+  });
+}
+
+function renderMatrixTable(rows){
+  const tbody = document.querySelector('#matrixTable tbody'); tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr = el('tr',{},[
+      el('td',{text:r.dimension}),
+      el('td',{text:r.weightedScore.toFixed(1)}),
+      el('td',{text:r.maxPossible.toFixed(1)}),
+      el('td',{text:r.percent+'%'})
+    ]);
+    tbody.appendChild(tr);
+  });
+}
+
+function renderMatrixChart(rows){
+  const canvas=document.getElementById('matrixChart'), ctx=canvas.getContext('2d');
+  const w=canvas.width, h=canvas.height, pad=40, innerW=w-pad*2, innerH=h-pad*2;
+  ctx.clearRect(0,0,w,h);
+  // axes
+  ctx.strokeStyle='#cbd5e1'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,h-pad); ctx.lineTo(w-pad,h-pad); ctx.stroke();
+  const barW = innerW/rows.length*0.6;
+  rows.forEach((r,i)=>{
+    const x = pad + (innerW/rows.length)*i + (innerW/rows.length - barW)/2;
+    const barH = (r.percent/100) * innerH;
+    const y = h - pad - barH;
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--brand') || '#6a5acd';
+    ctx.fillRect(x,y,barW,barH);
+    ctx.fillStyle='#111827'; ctx.font='12px system-ui';
+    const label = r.dimension.length>20 ? r.dimension.slice(0,20)+'…' : r.dimension;
+    ctx.fillText(label, x-6, h-pad+14);
+    ctx.fillText(r.percent+'%', x, y-4);
+  });
+}
+
+function generateReport(){
+  const cand = collectCandidate();
+  const interviewers = (document.querySelector('#candGrid input[placeholder="Interviewer(s)"]')?.value||'').trim();
+  const {answers,scores,notes} = collectQA();
+  const {finalScore, category} = computeFinal(scores);
+  const dmRows = buildDecisionMatrix(scores);
+  renderMatrixTable(dmRows);
+  renderMatrixChart(dmRows);
+
+  const overallImpression = document.getElementById('overallImpression').value;
+  const roleFit = document.getElementById('roleFit').value;
+  const decision = document.getElementById('decision').value;
+  const hrComments = (document.getElementById('hrComments').value||'').trim();
+
+  let rpt = `Topic: ${CONFIG.topic}\nCandidate: ${cand.name}\nRole: ${cand.role}\nType: ${cand.interviewType}\nDate: ${cand.date}\nInterviewers: ${interviewers}\n\n`;
+  rpt += `Final Score: ${finalScore.toFixed(2)} / ${SCALE_MAX.toFixed(1)}  |  Category: ${category}\n\n`;
+  rpt += `=== Detailed Responses ===\n`;
+  CONFIG.questions.forEach(q=>{
+    rpt += `\n• ${q.prompt}\n  Selected: ${answers[q.id] || '[Not selected]'}  (Score: ${scores[q.id]||0})\n`;
+    if(q.notesEnabled && notes[q.id]) rpt += `  Notes: ${notes[q.id]}\n`;
+  });
+  rpt += `\n=== HR Summary ===\nOverall Impression: ${overallImpression}\nRecommended Role Fit: ${roleFit}\nDecision: ${decision}\n`;
+  if(hrComments) rpt += `Comments: ${hrComments}\n`;
+
+  rpt += `\n=== Decision Matrix Alignment ===\nDimension | Weighted Score | Max Possible | Alignment %\n`;
+  rpt += `-----------------------------------------------------\n`;
+  dmRows.forEach(r=>{ rpt += `${r.dimension} | ${r.weightedScore.toFixed(1)} | ${r.maxPossible.toFixed(1)} | ${r.percent}%\n`; });
+
+  document.getElementById('reportBox').textContent = rpt;
+
+  const json = {
+    meta:{ version:"1.0.0", generatedAt:new Date().toISOString() },
+    topic: CONFIG.topic,
+    candidate:{ name:cand.name, role:cand.role, interviewType:cand.interviewType, date:cand.date },
+    interviewers,
+    finalScore: parseFloat(finalScore.toFixed(2)),
+    category,
+    hrSummary:{ overallImpression, roleFit, decision, comments: hrComments },
+    items: CONFIG.questions.map(q=>({
+      id:q.id, prompt:q.prompt, selectedAnswer:answers[q.id], score:scores[q.id]||0,
+      weight:q.weight, dimension:q.dimension, notes: q.notesEnabled? (notes[q.id]||'') : ''
+    })),
+    decisionMatrix: dmRows
+  };
+  window.__LAST_JSON__ = json;
+  return json;
+}
+
+function downloadJson(){
+  const data = window.__LAST_JSON__ || generateReport();
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const fname = (data.candidate?.name||'candidate').toString().replace(/\s+/g,'_');
+  a.href=url; a.download=`solvefy_candidate_report_${fname}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function printPdf(){ window.print(); }
+
+document.getElementById('btnGenerate').addEventListener('click', generateReport);
+
+document.getElementById('btnDownloadJson').addEventListener('click', downloadJson);
+
+document.getElementById('btnPrint').addEventListener('click', printPdf);
+
+(function init(){
+  // brand title
+  document.title = `${CONFIG.brand.title} — ${CONFIG.topic}`;
+  // candidate fields
+  mountCandidateFields();
+  // hr summary
+  mountHrSummary();
+  // questions
+  mountQuestions();
+})();
+</script>
+</body>
+</html>

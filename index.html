@@ -25,25 +25,24 @@
                   radial-gradient(1200px 800px at 90% 0%, #111827 0%, var(--bg) 70%);
       display: grid;
       grid-template-rows: auto 1fr auto;
-      min-height: 100%;
     }
     header, footer { padding: 16px 20px; }
     .content { max-width: 960px; margin: 0 auto; padding: 20px; width: 100%; }
     .brand { display:flex; align-items:center; gap:10px; }
     .brand img { width: 28px; height: 28px; }
     .title { font-weight: 800; letter-spacing: 0.2px; }
-
     .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
     .card { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.08)); border: 1px solid var(--border); border-radius: 16px; padding: 18px; box-shadow: var(--shadow); transition: transform 120ms ease, border-color 120ms ease; }
     .card:hover { transform: translateY(-2px); border-color: #2a3b52; }
     .card h3 { margin: 0 0 6px; }
     .card p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
     .btn { display:inline-block; padding: 10px 14px; border-radius: 12px; text-decoration: none; font-weight: 700; background: linear-gradient(90deg, var(--accent2), var(--accent)); color: #0b1220; }
-
+    
     .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 12px; color: var(--muted); }
     ul { margin: 6px 0 0 18px; }
     a.link { color: #7dd3fc; text-decoration: none; }
     a.link:hover { text-decoration: underline; }
+
   </style>
 </head>
 <body>
@@ -56,28 +55,28 @@
       </div>
     </div>
   </header>
-
   <main class="content">
     <div class="grid">
       <section class="card">
-        <h3>Step-by-Step Wizard</h3>
-        <p>Typeform-style multi-step flow with timers and report + DSM.</p>
+        <h3>Comprehensive Behavioural Assessment</h3>
+        <p>Full interview evaluation with detailed questions and reporting.</p>
         <a class="btn" href="./Step-By-Step.html">Open Step-By-Step</a>
       </section>
       <section class="card">
-        <h3>Short Assessment</h3>
+        <h3>Short Behavioural Assessment</h3>
         <p>Compact version suitable for quick screenings.</p>
         <a class="btn" href="./Short.html">Open Short</a>
       </section>
     </div>
-
-    <div style="margin-top:18px;" class="panel">
-      <div style="font-weight:700; margin-bottom:6px;">Resources</div>
-      <ul>
-        <li><a class="link" href="./README.md">README</a> (may render as raw text in the browser)</li>
-        <li><a class="link" href="https://" onclick="return false;">Add more variants by placing new HTML files here and linking them.</a></li>
-      </ul>
+    
+    <div class="grid" style="margin-top: 12px;">
+      <section class="card">
+        <h3>AI Engineer Assessment v1</h3>
+        <p>Role-specific evaluation tailored for AI Engineer candidates.</p>
+        <a class="btn" href="./solvefy_ai_engineer_assessment_v_1.html">Open AI Engineer v1</a>
+      </section>
     </div>
+
   </main>
 
   <footer>
