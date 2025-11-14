@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solvefy Interview Evaluation Portal — QA HR Screening v1.2</title>
+  <style>
+    :root {
+      --brand: #6a5acd;
+      --brand-2: #00c2ff;
+      --ink: #111827;
+      --muted: #6b7280;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --ring: #e5e7eb;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      font-family: Inter, system-ui, Segoe UI, Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink)
+    }
+
+    header {
+      background: linear-gradient(90deg, var(--brand), var(--brand-2));
+      color: #fff;
+      padding: 20px
+    }
+
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 16px
+    }
+
+    .brand {
+      display: flex;
+      gap: 16px;
+      align-items: center
+    }
+
+    .brand .logo {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      background: #fff1;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .15)
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px
+    }
+
+    .subtitle {
+      opacity: .9
+    }
+
+    main {
+      padding: 24px 0
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--ring);
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 6px 18px rgba(17, 24, 39, .04)
+    }
+
+    h2 {
+      margin: 4px 0 14px 0;
+      font-size: 20px
+    }
+
+    label {
+      font-weight: 600
+    }
+
+    input[type=text],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--ring);
+      border-radius: 10px
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 10px 12px;
+      border: 1px solid var(--ring);
+      border-radius: 10px
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px
+    }
+
+    .grid-2 {
+      grid-template-columns: 1fr 1fr
+    }
+
+    .grid-3 {
+      grid-template-columns: repeat(3, 1fr)
+    }
+
+    @media(max-width:900px) {
+
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr
+      }
+    }
+
+    .q {
+      padding: 14px;
+      border: 1px solid var(--ring);
+      border-radius: 12px;
+      background: #fff
+    }
+
+    .prompt {
+      font-weight: 700;
+      margin-bottom: 8px
+    }
+
+    .opt {
+      display: block;
+      margin: 6px 0
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap
+    }
+
+    button {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-weight: 700
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--brand);
+      border: 1px solid var(--brand)
+    }
+
+    button.ghost {
+      background: #fff;
+      color: #111;
+      border: 1px solid var(--ring)
+    }
+
+    button:focus-visible {
+      outline: 2px solid var(--brand-2);
+      outline-offset: 2px
+    }
+
+    #reportBox {
+      white-space: pre-wrap;
+      background: #0b1021;
+      color: #e5e7eb;
+      border-radius: 10px;
+      padding: 14px;
+      overflow: auto;
+      max-height: 420px;
+      border: 1px solid #0f172a
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%
+    }
+
+    th,
+    td {
+      border: 1px solid var(--ring);
+      padding: 8px;
+      text-align: left;
+      font-size: 14px
+    }
+
+    th {
+      background: #f3f4f6
+    }
+
+    canvas {
+      max-width: 100%;
+      height: 260px;
+      border: 1px solid var(--ring);
+      border-radius: 10px;
+      background: #fff
+    }
+
+    .footer {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px
+    }
+
+    @media print {
+
+      header,
+      .actions {
+        display: none
+      }
+
+      body {
+        background: #fff
+      }
+
+      .card {
+        box-shadow: none;
+        border-color: #ddd
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="wrap brand" aria-label="Solvefy branding">
+      <div class="logo" aria-hidden="true"></div>
+      <div>
+        <h1>Solvefy Interview Evaluation Portal</h1>
+        <div class="subtitle">QA HR Screening — 5 questions, 0–2 scoring (Total 0–10)</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card" aria-labelledby="candSec">
+      <h2 id="candSec">Candidate & Interview Details</h2>
+      <div class="grid grid-3" id="candGrid"></div>
+    </section>
+
+    <section class="card" aria-labelledby="qSec">
+      <h2 id="qSec">Questions (MCQ + Optional Notes)</h2>
+      <p class="muted">
+        Scoring per question: 2 = Good, 1 = Average, 0 = Poor. Total: 0–12. <br />
+        8–12 → Move to Technical Evaluation &nbsp;|&nbsp; 0–8 → Not Suitable.
+      </p>
+      <div id="questions"></div>
+      <div class="muted" style="margin-top:8px">
+        Tip: Select the option that best matches the candidate’s answer. Use notes only if needed.
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="hrSec">
+      <h2 id="hrSec">HR Summary & Decision</h2>
+      <div class="grid grid-3">
+        <div>
+          <label for="overallImpression">Overall Impression</label>
+          <select id="overallImpression"></select>
+        </div>
+        <div>
+          <label for="roleFit">Recommended Role Fit</label>
+          <select id="roleFit"></select>
+        </div>
+        <div>
+          <label for="decision">Decision</label>
+          <select id="decision"></select>
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label for="hrComments">Additional Comments (optional)</label>
+        <textarea id="hrComments"></textarea>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Actions</h2>
+      <div class="actions">
+        <button id="btnGenerate">Generate Report & Score</button>
+        <button class="secondary" id="btnDownloadJson">Download JSON</button>
+        <button class="ghost" id="btnPrint">Print / Save PDF</button>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="repSec">
+      <h2 id="repSec">Generated Report</h2>
+      <div id="reportBox">No report yet.</div>
+    </section>
+
+    <section class="card" aria-labelledby="dmSec">
+      <h2 id="dmSec">Decision Matrix Alignment</h2>
+      <div style="overflow:auto">
+        <table id="matrixTable">
+          <thead>
+            <tr>
+              <th>Dimension</th>
+              <th>Weighted Score</th>
+              <th>Max Possible</th>
+              <th>Alignment %</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div style="margin-top:12px">
+        <canvas id="matrixChart" width="1000" height="260" aria-label="Decision Matrix Chart"></canvas>
+      </div>
+    </section>
+
+    <div class="footer">© Solvefy — Structured, fair, and fast interviews.</div>
+  </main>
+
+  <script>
+    const CONFIG = {
+      topic: "QA HR Screening",
+      brand: {
+        company: "Solvefy",
+        title: "Solvefy Interview Evaluation Portal",
+        primary: "#6a5acd",
+        accent: "#00c2ff"
+      },
+      candidateFields: ["Candidate Name", "Position / Role", "Interviewer(s)", "Interview Type", "Date"],
+      hrSummary: {
+        overallImpressionOptions: ["Excellent", "Strong", "Good", "Average", "Below Average", "Poor"],
+        roleFitOptions: ["Senior", "Mid", "Junior", "Team Lead", "Project Manager", "Other / Not sure"],
+        decisionOptions: ["Hire", "Strong Consider", "Hold", "Reject"]
+      },
+      // Question-level scores: 0, 1, 2
+      scale: { min: 0, max: 2 },
+      // Category bands on normalized 1–5 score
+      categoryBands: [
+        { min: 4.5, label: "A+" },
+        { min: 4.0, label: "A" },
+        { min: 3.5, label: "B" },
+        { min: 2.5, label: "C" },
+        { min: 1.8, label: "D" },
+        { min: 1.0, label: "E" },
+        { min: -999, label: "F" }
+      ],
+      questions: [
+        {
+          id: "q1_experience_overview",
+          prompt: "1. Experience Overview – \"Can you briefly explain your QA experience and what types of applications you have tested?\"",
+          dimension: "Experience Overview",
+          weight: 20,
+          options: [
+            {
+              label: "Score 2 (Good): \"I have 1.5 years of experience in manual QA. I’ve tested web applications and mobile apps for e-commerce and HR portals. My role involved functional testing, regression testing, and validating UI/UX flows.\"",
+              value: 2
+            },
+            {
+              label: "Score 1 (Average): \"I worked as a QA on different projects and tested different websites.\"",
+              value: 1
+            },
+            {
+              label: "Score 0 (Poor): \"I know testing but not sure about the types of apps. Mostly general work.\"",
+              value: 0
+            }
+          ],
+          notesEnabled: true
+        },
+        {
+          id: "q2_daily_responsibilities",
+          prompt: "2. Daily Responsibilities – \"What were your daily responsibilities in your previous role?\"",
+          dimension: "Daily Responsibilities",
+          weight: 20,
+          options: [
+            {
+              label: "Score 2 (Good): \"My daily tasks included writing and executing test cases, reporting bugs in JIRA, performing smoke tests on builds, verifying fixes, and coordinating with the developer for clarifications.\"",
+              value: 2
+            },
+            {
+              label: "Score 1 (Average): \"I used to test features and find bugs.\"",
+              value: 1
+            },
+            {
+              label: "Score 0 (Poor): \"I didn’t have specific tasks; I just checked things sometimes.\"",
+              value: 0
+            }
+          ],
+          notesEnabled: true
+        },
+        {
+          id: "q3_testing_process",
+          prompt: "3. Testing Process Understanding – \"Walk me through your testing process from receiving a requirement to completing testing.\"",
+          dimension: "Testing Process Understanding",
+          weight: 20,
+          options: [
+            {
+              label: "Score 2 (Good): \"I start by reviewing requirements, creating test scenarios, writing test cases, executing them, logging issues with screenshots or recordings, retesting after fixes, and doing regression before final sign-off.\"",
+              value: 2
+            },
+            {
+              label: "Score 1 (Average): \"I test based on requirements and report issues.\"",
+              value: 1
+            },
+            {
+              label: "Score 0 (Poor): \"I just check the feature and tell the developer if something is wrong.\"",
+              value: 0
+            }
+          ],
+          notesEnabled: true
+        },
+        {
+          id: "q4_bug_reporting_tools",
+          prompt: "4. Bug Reporting + Tools – \"How do you report bugs and what tools have you used?\"",
+          dimension: "Bug Reporting & Tools",
+          weight: 20,
+          options: [
+            {
+              label: "Score 2 (Good): \"I use JIRA and Trello. My bug reports include steps to reproduce, expected vs. actual result, environment details, screenshots, and severity/priority.\"",
+              value: 2
+            },
+            {
+              label: "Score 1 (Average): \"I use JIRA, and I submit issues there.\"",
+              value: 1
+            },
+            {
+              label: "Score 0 (Poor): \"I haven’t used any bug tools; I tell developers on WhatsApp.\"",
+              value: 0
+            }
+          ],
+          notesEnabled: true
+        },
+        {
+          id: "q5_testing_types_real_example",
+          prompt: "5. Testing Types + Real Example – \"What types of testing have you performed? Give one real example.\"",
+          dimension: "Testing Types & Practical Application",
+          weight: 20,
+          options: [
+            {
+              label: "Score 2 (Good): \"I’ve done functional, smoke, and regression testing. For example, during regression testing of a login module, I found that after fixing a password reset bug, the remember-me checkbox stopped working.\"",
+              value: 2
+            },
+            {
+              label: "Score 1 (Average): \"I did functional and regression testing.\"",
+              value: 1
+            },
+            {
+              label: "Score 0 (Poor): \"I know testing types but haven’t done them myself.\"",
+              value: 0
+            }
+          ],
+          notesEnabled: true
+        },
+        {
+          "id": "q6_automation_knowledge",
+          "prompt": "6. Automation Testing Knowledge – \"What automation tools or frameworks have you used, and can you describe any automation scripts you have written?\"",
+          "dimension": "Automation Testing Knowledge",
+          "weight": 40,
+          "options": [
+            {
+              "label": "Score 2 (Good): \"I have hands-on experience with automation tools like Selenium, Playwright, or Cypress. I’ve written scripts for smoke/regression suites, implemented page object models, and executed automated test cases as part of CI/CD pipelines.\"",
+              "value": 2
+            },
+            {
+              "label": "Score 1 (Average): \"I know basic Selenium or have created simple automation scripts but limited real-world usage.\"",
+              "value": 1
+            },
+            {
+              "label": "Score 0 (Poor): \"I have not worked with automation tools or do not understand how automation scripts are written.\"",
+              "value": 0
+            }
+          ],
+          "notesEnabled": true
+        }
+
+      ]
+    };
+
+    const SCALE_MIN = CONFIG.scale.min;
+    const SCALE_MAX = CONFIG.scale.max; // 0–2
+
+    function el(tag, attrs = {}, children = []) {
+      const e = document.createElement(tag);
+      Object.entries(attrs).forEach(([k, v]) => {
+        if (k === "class") e.className = v;
+        else if (k === "text") e.textContent = v;
+        else e.setAttribute(k, v);
+      });
+      (Array.isArray(children) ? children : [children])
+        .filter(Boolean)
+        .forEach(c => e.appendChild(c));
+      return e;
+    }
+
+    function mountCandidateFields() {
+      const grid = document.getElementById("candGrid");
+      grid.innerHTML = "";
+      const labels = CONFIG.candidateFields || [
+        "Candidate Name",
+        "Position / Role",
+        "Interviewer(s)",
+        "Interview Type",
+        "Date"
+      ];
+      labels.forEach(lbl => {
+        const id = lbl.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+        const input = el("input", { type: "text", id: id, placeholder: lbl });
+        grid.appendChild(el("div", {}, [el("label", { text: lbl }), input]));
+      });
+    }
+
+    function mountHrSummary() {
+      const oiSel = document.getElementById("overallImpression");
+      const rfSel = document.getElementById("roleFit");
+      const dSel = document.getElementById("decision");
+      (CONFIG.hrSummary?.overallImpressionOptions || []).forEach(v =>
+        oiSel.appendChild(el("option", { text: v }))
+      );
+      (CONFIG.hrSummary?.roleFitOptions || []).forEach(v =>
+        rfSel.appendChild(el("option", { text: v }))
+      );
+      (CONFIG.hrSummary?.decisionOptions || []).forEach(v =>
+        dSel.appendChild(el("option", { text: v }))
+      );
+    }
+
+    function mountQuestions() {
+      const root = document.getElementById("questions");
+      root.innerHTML = "";
+      CONFIG.questions.forEach(q => {
+        const block = el("div", { class: "q" });
+        block.appendChild(el("div", { class: "prompt", text: q.prompt }));
+        q.options.forEach(opt => {
+          const id = `opt_${q.id}_${opt.value}`;
+          const radio = el("input", {
+            type: "radio",
+            name: `opt_${q.id}`,
+            id,
+            value: opt.value
+          });
+          const lbl = el("label", { class: "opt", for: id }, [
+            radio,
+            document.createTextNode(" " + opt.label)
+          ]);
+          block.appendChild(lbl);
+        });
+        if (q.notesEnabled) {
+          block.appendChild(
+            el("div", {
+              class: "muted",
+              text: "Notes / justification (optional)"
+            })
+          );
+          block.appendChild(el("textarea", { id: `notes_${q.id}` }));
+        }
+        root.appendChild(block);
+      });
+    }
+
+    function collectCandidate() {
+      const out = {};
+      (CONFIG.candidateFields || []).forEach(lbl => {
+        const id = lbl.toLowerCase().replace(/[^a-z0-9]+/g, "_");
+        const v = (document.getElementById(id)?.value || "").trim();
+        out[id] = v;
+      });
+      return {
+        name: out["candidate_name"] || "",
+        role: out["position_role"] || "",
+        interviewType: out["interview_type"] || "",
+        date: out["date"] || "",
+        _raw: out
+      };
+    }
+
+    function collectQA() {
+      const answers = {};
+      const scores = {};
+      const notes = {};
+      CONFIG.questions.forEach(q => {
+        const radios = document.getElementsByName("opt_" + q.id);
+        let sel = null;
+        for (const r of radios) {
+          if (r.checked) {
+            sel = parseInt(r.value, 10);
+            break;
+          }
+        }
+        const score = typeof sel === "number" && !isNaN(sel) ? sel : 0;
+        scores[q.id] = score; // 0–2
+        answers[q.id] =
+          sel === null
+            ? ""
+            : (q.options.find(o => o.value === sel)?.label || "");
+        notes[q.id] = (document.getElementById("notes_" + q.id)?.value || "").trim();
+      });
+      return { answers, scores, notes };
+    }
+
+    /**
+     * Final scoring:
+     * - rawTotal: 0–10 (sum of 5 questions * 0–2)
+     * - normalizedScore 1–5 for category mapping (Solvefy bands)
+     */
+    function computeFinal(scores) {
+      let weightedTotal = 0;
+      let totalWeight = 0;
+      let rawTotal = 0;
+      CONFIG.questions.forEach(q => {
+        const s = scores[q.id] || 0;   // 0–2
+        rawTotal += s;
+        weightedTotal += (s / SCALE_MAX) * q.weight; // 0–1 * weight
+        totalWeight += q.weight;
+      });
+      const maxRaw = CONFIG.questions.length * SCALE_MAX; // 10
+      const normalized01 = totalWeight ? weightedTotal / totalWeight : 0; // 0–1
+      const finalScore = 1 + normalized01 * 4; // 1–5
+      const band =
+        (CONFIG.categoryBands || []).find(b => finalScore >= b.min)?.label || "F";
+      return { finalScore, category: band, rawTotal, maxRaw };
+    }
+
+    function buildDecisionMatrix(scores) {
+      const totals = {};
+      const maxes = {};
+      CONFIG.questions.forEach(q => {
+        const s = scores[q.id] || 0; // 0–2
+        totals[q.dimension] = (totals[q.dimension] || 0) + s * q.weight;
+        maxes[q.dimension] = (maxes[q.dimension] || 0) + SCALE_MAX * q.weight;
+      });
+      return Object.keys(totals).map(dim => {
+        const weightedScore = totals[dim];
+        const maxPossible = maxes[dim] || 1;
+        const pct = (weightedScore / maxPossible) * 100;
+        return {
+          dimension: dim,
+          weightedScore,
+          maxPossible,
+          percent: parseFloat(pct.toFixed(1))
+        };
+      });
+    }
+
+    function renderMatrixTable(rows) {
+      const tbody = document.querySelector("#matrixTable tbody");
+      tbody.innerHTML = "";
+      rows.forEach(r => {
+        const tr = el("tr", {}, [
+          el("td", { text: r.dimension }),
+          el("td", { text: r.weightedScore.toFixed(1) }),
+          el("td", { text: r.maxPossible.toFixed(1) }),
+          el("td", { text: r.percent + "%" })
+        ]);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderMatrixChart(rows) {
+      const canvas = document.getElementById("matrixChart");
+      const ctx = canvas.getContext("2d");
+      const w = canvas.width;
+      const h = canvas.height;
+      const pad = 40;
+      const innerW = w - pad * 2;
+      const innerH = h - pad * 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Axes
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad, pad);
+      ctx.lineTo(pad, h - pad);
+      ctx.lineTo(w - pad, h - pad);
+      ctx.stroke();
+
+      if (!rows.length) return;
+
+      const barSlot = innerW / rows.length;
+      const barW = barSlot * 0.6;
+
+      rows.forEach((r, i) => {
+        const x = pad + barSlot * i + (barSlot - barW) / 2;
+        const barH = (r.percent / 100) * innerH;
+        const y = h - pad - barH;
+
+        ctx.fillStyle =
+          getComputedStyle(document.documentElement)
+            .getPropertyValue("--brand")
+            .trim() || "#6a5acd";
+        ctx.fillRect(x, y, barW, barH);
+
+        ctx.fillStyle = "#111827";
+        ctx.font = "12px system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+        const label =
+          r.dimension.length > 18
+            ? r.dimension.slice(0, 17) + "…"
+            : r.dimension;
+        ctx.save();
+        ctx.translate(x, h - pad + 14);
+        ctx.rotate(-Math.PI / 8);
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+
+        ctx.fillText(r.percent + "%", x, y - 4);
+      });
+    }
+
+    function generateReport() {
+      const cand = collectCandidate();
+      const interviewers =
+        (document.querySelector('#candGrid input[placeholder="Interviewer(s)"]')
+          ?.value || "").trim();
+
+      const { answers, scores, notes } = collectQA();
+      const { finalScore, category, rawTotal, maxRaw } = computeFinal(scores);
+      const dmRows = buildDecisionMatrix(scores);
+
+      renderMatrixTable(dmRows);
+      renderMatrixChart(dmRows);
+
+      const overallImpression = document.getElementById("overallImpression").value;
+      const roleFit = document.getElementById("roleFit").value;
+      const decision = document.getElementById("decision").value;
+      const hrComments = (document.getElementById("hrComments").value || "").trim();
+
+      const suitability =
+        rawTotal >= 7
+          ? "Move to Technical Evaluation (7–10)."
+          : "Not Suitable (0–6).";
+
+      let rpt = "";
+      rpt += `Topic: ${CONFIG.topic}\n`;
+      rpt += `Candidate: ${cand.name}\n`;
+      rpt += `Role: ${cand.role}\n`;
+      rpt += `Interview Type: ${cand.interviewType}\n`;
+      rpt += `Date: ${cand.date}\n`;
+      rpt += `Interviewers: ${interviewers}\n\n`;
+
+      rpt += `Raw Score: ${rawTotal} / ${maxRaw} (0–10 rubric)\n`;
+      rpt += `Normalized Score: ${finalScore.toFixed(2)} / 5.00  |  Category: ${category}\n`;
+      rpt += `Rubric Recommendation: ${suitability}\n\n`;
+
+      rpt += `=== Detailed Responses ===\n`;
+      CONFIG.questions.forEach(q => {
+        rpt += `\n• ${q.prompt}\n`;
+        rpt += `  Selected: ${answers[q.id] || "[Not selected]"}  (Score: ${scores[q.id] ?? 0
+          })\n`;
+        if (q.notesEnabled && notes[q.id]) {
+          rpt += `  Notes: ${notes[q.id]}\n`;
+        }
+      });
+
+      rpt += `\n=== HR Summary ===\n`;
+      rpt += `Overall Impression: ${overallImpression}\n`;
+      rpt += `Recommended Role Fit: ${roleFit}\n`;
+      rpt += `Decision: ${decision}\n`;
+      if (hrComments) {
+        rpt += `Comments: ${hrComments}\n`;
+      }
+
+      rpt += `\n=== Decision Matrix Alignment ===\n`;
+      rpt += `Dimension | Weighted Score | Max Possible | Alignment %\n`;
+      rpt += `-----------------------------------------------------\n`;
+      dmRows.forEach(r => {
+        rpt += `${r.dimension} | ${r.weightedScore.toFixed(
+          1
+        )} | ${r.maxPossible.toFixed(1)} | ${r.percent}%\n`;
+      });
+
+      document.getElementById("reportBox").textContent = rpt;
+
+      const json = {
+        meta: {
+          version: "1.0.0",
+          generatedAt: new Date().toISOString()
+        },
+        topic: CONFIG.topic,
+        candidate: {
+          name: cand.name,
+          role: cand.role,
+          interviewType: cand.interviewType,
+          date: cand.date
+        },
+        interviewers,
+        finalScore: parseFloat(finalScore.toFixed(2)), // 1–5 scale
+        totalScore10: rawTotal, // your 0–10 rubric
+        category,
+        hrSummary: {
+          overallImpression,
+          roleFit,
+          decision,
+          comments: hrComments
+        },
+        items: CONFIG.questions.map(q => ({
+          id: q.id,
+          prompt: q.prompt,
+          selectedAnswer: answers[q.id] || "",
+          score: scores[q.id] ?? 0,
+          weight: q.weight,
+          dimension: q.dimension,
+          notes: q.notesEnabled ? (notes[q.id] || "") : ""
+        })),
+        decisionMatrix: dmRows
+      };
+
+      window.__LAST_JSON__ = json;
+      return json;
+    }
+
+    function downloadJson() {
+      const data = window.__LAST_JSON__ || generateReport();
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json"
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const fname = (data.candidate?.name || "candidate")
+        .toString()
+        .trim()
+        .replace(/\s+/g, "_") || "candidate";
+      a.href = url;
+      a.download = `solvefy_candidate_report_${fname}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function printPdf() {
+      window.print();
+    }
+
+    document.getElementById("btnGenerate").addEventListener("click", generateReport);
+    document
+      .getElementById("btnDownloadJson")
+      .addEventListener("click", downloadJson);
+    document.getElementById("btnPrint").addEventListener("click", printPdf);
+
+    (function init() {
+      document.title = `${CONFIG.brand.title} — ${CONFIG.topic} v1.2`;
+      mountCandidateFields();
+      mountHrSummary();
+      mountQuestions();
+    })();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solvefy Interview Evaluation Portal — ASP.NET Zero (ABP) Onboarding Assessment</title>
+    <style>
+        :root {
+            --brand: #6a5acd;
+            --brand-2: #00c2ff;
+            --ink: #111827;
+            --muted: #6b7280;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --ring: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: Inter, system-ui, Segoe UI, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink)
+        }
+
+        header {
+            background: linear-gradient(90deg, var(--brand), var(--brand-2));
+            color: #fff;
+            padding: 20px
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 16px
+        }
+
+        .brand {
+            display: flex;
+            gap: 16px;
+            align-items: center
+        }
+
+        .brand .logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            background: #fff1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .15)
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px
+        }
+
+        .subtitle {
+            opacity: .9
+        }
+
+        main {
+            padding: 24px 0
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--ring);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 18px rgba(17, 24, 39, .04)
+        }
+
+        h2 {
+            margin: 4px 0 14px 0;
+            font-size: 20px
+        }
+
+        label {
+            font-weight: 600
+        }
+
+        input[type=text],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--ring);
+            border-radius: 10px
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 10px 12px;
+            border: 1px solid var(--ring);
+            border-radius: 10px
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px
+        }
+
+        .grid-2 {
+            grid-template-columns: 1fr 1fr
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr)
+        }
+
+        @media(max-width:900px) {
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .q {
+            padding: 14px;
+            border: 1px solid var(--ring);
+            border-radius: 12px;
+            background: #fff
+        }
+
+        .prompt {
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .opt {
+            display: block;
+            margin: 6px 0
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        button {
+            background: var(--brand);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        button.secondary {
+            background: #fff;
+            color: var(--brand);
+            border: 1px solid var(--brand)
+        }
+
+        button.ghost {
+            background: #fff;
+            color: #111;
+            border: 1px solid var(--ring)
+        }
+
+        #reportBox {
+            white-space: pre-wrap;
+            background: #0b1021;
+            color: #e5e7eb;
+            border-radius: 10px;
+            padding: 14px;
+            overflow: auto;
+            max-height: 420px;
+            border: 1px solid #0f172a
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%
+        }
+
+        th,
+        td {
+            border: 1px solid var(--ring);
+            padding: 8px;
+            text-align: left;
+            font-size: 14px
+        }
+
+        th {
+            background: #f3f4f6
+        }
+
+        canvas {
+            max-width: 100%;
+            height: 260px;
+            border: 1px solid var(--ring);
+            border-radius: 10px;
+            background: #fff
+        }
+
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        @media print {
+
+            header,
+            .actions {
+                display: none
+            }
+
+            body {
+                background: #fff
+            }
+
+            .card {
+                box-shadow: none;
+                border-color: #ddd
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap brand" aria-label="Solvefy branding">
+            <div class="logo" aria-hidden="true"></div>
+            <div>
+                <h1>Solvefy Interview Evaluation Portal</h1>
+                <div class="subtitle">ASP.NET Zero (ABP) Onboarding Assessment</div>
+            </div>
+        </div>
+    </header>
+    <main class="wrap">
+        <section class="card" aria-labelledby="candSec">
+            <h2 id="candSec">Candidate & Interview Details</h2>
+            <div class="grid grid-3" id="candGrid"></div>
+        </section>
+
+        <section class="card" aria-labelledby="qSec">
+            <h2 id="qSec">Questions (MCQ + Optional Notes)</h2>
+            <div id="questions"></div>
+            <div class="muted" style="margin-top:8px">Tip: Select the option that best reflects observed behavior. Use
+                notes only if needed.</div>
+        </section>
+
+        <section class="card" aria-labelledby="hrSec">
+            <h2 id="hrSec">HR Summary & Decision</h2>
+            <div class="grid grid-3">
+                <div><label>Overall Impression</label><select id="overallImpression"></select></div>
+                <div><label>Recommended Role Fit</label><select id="roleFit"></select></div>
+                <div><label>Decision</label><select id="decision"></select></div>
+            </div>
+            <div style="margin-top:12px"><label>Additional Comments (optional)</label><textarea
+                    id="hrComments"></textarea></div>
+        </section>
+
+        <section class="card">
+            <h2>Actions</h2>
+            <div class="actions">
+                <button id="btnGenerate">Generate Report & Score</button>
+                <button class="secondary" id="btnDownloadJson">Download JSON</button>
+                <button class="ghost" id="btnPrint">Print / Save PDF</button>
+            </div>
+        </section>
+
+        <section class="card" aria-labelledby="repSec">
+            <h2 id="repSec">Generated Report</h2>
+            <div id="reportBox">No report yet.</div>
+        </section>
+
+        <section class="card" aria-labelledby="dmSec">
+            <h2 id="dmSec">Decision Matrix Alignment</h2>
+            <div style="overflow:auto">
+                <table id="matrixTable">
+                    <thead>
+                        <tr>
+                            <th>Dimension</th>
+                            <th>Weighted Score</th>
+                            <th>Max Possible</th>
+                            <th>Alignment %</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div style="margin-top:12px"><canvas id="matrixChart" width="1000" height="260"
+                    aria-label="Decision Matrix Chart"></canvas></div>
+        </section>
+
+        <div class="footer">© Solvefy — Structured, fair, and fast interviews.</div>
+    </main>
+
+    <script>
+        const CONFIG = {
+            "topic": "ASP.NET Zero (ABP) Onboarding Assessment",
+            "brand": {
+                "company": "Solvefy",
+                "title": "Solvefy Interview Evaluation Portal",
+                "primary": "#6a5acd",
+                "accent": "#00c2ff"
+            },
+            "candidateFields": ["Candidate Name", "Position / Role", "Interviewer(s)", "Interview Type", "Date"],
+            "hrSummary": {
+                "overallImpressionOptions": ["Excellent", "Strong", "Good", "Average", "Below Average", "Poor"],
+                "roleFitOptions": ["Senior", "Mid", "Junior", "Team Lead", "Project Manager", "Other / Not sure"],
+                "decisionOptions": ["Hire", "Strong Consider", "Hold", "Reject"]
+            },
+            "scale": { "min": 1, "max": 5 },
+            "categoryBands": [
+                { "min": 4.5, "label": "A+" },
+                { "min": 4.0, "label": "A" },
+                { "min": 3.5, "label": "B" },
+                { "min": 2.5, "label": "C" },
+                { "min": 1.8, "label": "D" },
+                { "min": 1.0, "label": "E" },
+                { "min": -999, "label": "F" }
+            ],
+            "questions": [
+                {
+                    "id": "mt_model",
+                    "prompt": "Explain ASP.NET Zero/ABP multi-tenancy and when to use MayHaveTenantId vs MustHaveTenantId.",
+                    "dimension": "Multi-Tenancy & Data Isolation",
+                    "weight": 20,
+                    "options": [
+                        { "label": "Clearly explains tenant separation; correctly contrasts MayHaveTenantId (shared/global allowed) vs MustHaveTenantId (tenant-scoped only); cites practical examples and pitfalls", "value": 5 },
+                        { "label": "Explains basics; identifies correct use of MayHaveTenantId vs MustHaveTenantId with an example", "value": 4 },
+                        { "label": "Understands concept but mixes details; needs guidance on when to use each", "value": 3 },
+                        { "label": "Vague awareness of multi-tenancy; unsure about May/ Must distinctions", "value": 2 },
+                        { "label": "Confuses multi-tenancy or states incorrect usage", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "mt_resolution",
+                    "prompt": "How is tenant resolved (subdomain/header/cookie) and how do you switch or impersonate tenants?",
+                    "dimension": "Multi-Tenancy & Data Isolation",
+                    "weight": 12,
+                    "options": [
+                        { "label": "Describes resolution pipeline; enumerates supported resolvers; safely handles tenant switch & impersonation with audit trails", "value": 5 },
+                        { "label": "Knows resolver order; can switch tenant in dev/admin correctly", "value": 4 },
+                        { "label": "Knows only one resolver; can switch with help", "value": 3 },
+                        { "label": "Vague on resolution; guesses steps", "value": 2 },
+                        { "label": "No idea how tenant is resolved or switched", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "data_filters",
+                    "prompt": "Discuss ABP dynamic data filters (e.g., soft delete, tenant filters) and how to enable/disable them.",
+                    "dimension": "Data Filters & Soft Delete",
+                    "weight": 16,
+                    "options": [
+                        { "label": "Explains ISoftDelete, IMay/MustHaveTenant filters; toggles via IUnitOfWork/using blocks; avoids data leaks with explicit Disable/Enable scope", "value": 5 },
+                        { "label": "Explains soft delete & tenant filters and basic toggling", "value": 4 },
+                        { "label": "Understands soft delete only; unsure about scopes", "value": 3 },
+                        { "label": "Knows filters exist but not how they work", "value": 2 },
+                        { "label": "Does not know filters", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "auth_permissions_intro",
+                    "prompt": "How are permissions and roles modeled in ASP.NET Zero? How do role permissions get evaluated for a user?",
+                    "dimension": "Authorization & Permissions",
+                    "weight": 18,
+                    "options": [
+                        { "label": "Accurately explains permission tree, static names, roles aggregate permissions, user inherits via roles + direct grants; considers tenant vs host context", "value": 5 },
+                        { "label": "Explains roles & permissions and user evaluation correctly", "value": 4 },
+                        { "label": "Partial understanding; misses inheritance nuances", "value": 3 },
+                        { "label": "Knows roles exist but unclear on evaluation", "value": 2 },
+                        { "label": "Incorrect model", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "auth_guards",
+                    "prompt": "Add a new permission and secure an Application Service method with it (attributes/policy). What steps?",
+                    "dimension": "Authorization & Permissions",
+                    "weight": 14,
+                    "options": [
+                        { "label": "Defines permission constant & localization; registers in provider; decorates AppService method ([Authorize]/[AbpAuthorize]) and UI; migration/seed for role; verifies via PermissionChecker", "value": 5 },
+                        { "label": "Defines permission and secures method; updates role", "value": 4 },
+                        { "label": "Adds permission or attribute but forgets role seeding/UI", "value": 3 },
+                        { "label": "Unclear on where to define or apply", "value": 2 },
+                        { "label": "Cannot describe the steps", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "settings_framework",
+                    "prompt": "How do you add a new setting (scopes: Application/Tenant/User) and read/write it safely?",
+                    "dimension": "Settings & Configuration",
+                    "weight": 14,
+                    "options": [
+                        { "label": "Creates SettingDefinition with default & scopes; exposes via SettingProvider; uses ISettingManager/SettingAppService; caches/invalidates; validates input", "value": 5 },
+                        { "label": "Adds definition and reads/writes via API correctly", "value": 4 },
+                        { "label": "Adds but misuses scope or defaults", "value": 3 },
+                        { "label": "Unclear on scopes or APIs", "value": 2 },
+                        { "label": "No idea", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "editions_features",
+                    "prompt": "Explain Editions & Feature Management and how feature toggles restrict tenant capabilities.",
+                    "dimension": "Editions & Feature Flags",
+                    "weight": 14,
+                    "options": [
+                        { "label": "Explains editions as bundles of features; per-tenant feature values; checks via IFeatureChecker or attributes; migration/seed strategy", "value": 5 },
+                        { "label": "Understands editions & basic feature checks", "value": 4 },
+                        { "label": "Knows features but not editions linkage", "value": 3 },
+                        { "label": "Vague awareness only", "value": 2 },
+                        { "label": "Incorrect model", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "base_entities",
+                    "prompt": "Explain ABP base entities (e.g., Entity, AuditedEntity, FullAuditedEntity) and when to inherit each.",
+                    "dimension": "Base Entities & Inheritance",
+                    "weight": 14,
+                    "options": [
+                        { "label": "Accurately explains hierarchy, auditing properties, and tenant relations; applies correctly per use-case", "value": 5 },
+                        { "label": "Understands key base entities and their purpose", "value": 4 },
+                        { "label": "Knows only FullAuditedEntity; partial understanding", "value": 3 },
+                        { "label": "Limited understanding of base classes", "value": 2 },
+                        { "label": "No idea about ABP base entities", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "async_crud_appservice",
+                    "prompt": "Describe the purpose of AsyncCrudAppService and how DTOs and AutoMapper profiles work with it.",
+                    "dimension": "Application Layer & Services",
+                    "weight": 16,
+                    "options": [
+                        { "label": "Explains generic type parameters, AutoMapper setup, DTO mappings, and how to extend CRUD methods; aware of validation & authorization integration", "value": 5 },
+                        { "label": "Knows how to derive from AsyncCrudAppService and use DTOs correctly", "value": 4 },
+                        { "label": "Understands usage but cannot explain mapping details", "value": 3 },
+                        { "label": "Used it once; unsure of generics/mapping", "value": 2 },
+                        { "label": "No experience with AsyncCrudAppService", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "layers_responsibility",
+                    "prompt": "Differentiate responsibilities of Domain, Application, Infrastructure, API, and Web layers in an ABP-based project.",
+                    "dimension": "Architecture & Layers",
+                    "weight": 16,
+                    "options": [
+                        { "label": "Clearly defines each layer’s responsibility; shows how dependencies flow inward; understands why Application uses Domain but not vice versa", "value": 5 },
+                        { "label": "Describes separation between Application and Domain layers correctly", "value": 4 },
+                        { "label": "General understanding but misses Infrastructure or API role", "value": 3 },
+                        { "label": "Mixes responsibilities; leaky abstractions", "value": 2 },
+                        { "label": "Incorrect understanding of layer boundaries", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "abp_session_logger",
+                    "prompt": "Explain how IAbpSession and ILogger are used for current user/tenant context and logging.",
+                    "dimension": "Infrastructure & Diagnostics",
+                    "weight": 12,
+                    "options": [
+                        { "label": "Explains IAbpSession properties (TenantId, UserId) and ILogger best practices for structured logs; uses both effectively for contextual logging", "value": 5 },
+                        { "label": "Understands session and logger usage correctly", "value": 4 },
+                        { "label": "Partial understanding; uses without full context awareness", "value": 3 },
+                        { "label": "Vague knowledge of session/logger", "value": 2 },
+                        { "label": "Does not know these concepts", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "crud_tools",
+                    "prompt": "Explain CRUD generation using Power Tools (RAD) and outline steps to manually create CRUD when not using tools.",
+                    "dimension": "Productivity & CRUD Implementation",
+                    "weight": 16,
+                    "options": [
+                        { "label": "Knows how RAD tool scaffolds layers (entity, DTO, AppService, UI); can perform same steps manually with AsyncCrudAppService, AutoMapper, and localization", "value": 5 },
+                        { "label": "Familiar with RAD tool and manual CRUD steps", "value": 4 },
+                        { "label": "Knows generated artifacts but cannot do manual CRUD confidently", "value": 3 },
+                        { "label": "Used tool only; no manual CRUD knowledge", "value": 2 },
+                        { "label": "Unfamiliar with CRUD generation", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "documentation_familiarity",
+                    "prompt": "Have you reviewed ABP documentation and built a CRUD manually? Describe your experience with AsyncCrudAppService and DTO mapping.",
+                    "dimension": "Documentation & Self-Learning",
+                    "weight": 10,
+                    "options": [
+                        { "label": "Has studied docs, followed examples, built manual CRUD using AsyncCrudAppService and DTOs successfully", "value": 5 },
+                        { "label": "Read docs and built partial CRUD manually", "value": 4 },
+                        { "label": "Looked at docs briefly; limited hands-on practice", "value": 3 },
+                        { "label": "Minimal documentation exposure", "value": 2 },
+                        { "label": "No familiarity with official documentation", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "validation",
+                    "prompt": "How does ASP.NET Zero validate inputs (DTO annotations, custom validators) and return user-friendly errors?",
+                    "dimension": "Validation & UX",
+                    "weight": 12,
+                    "options": [
+                        { "label": "Uses DataAnnotations/Fluent rules; AppService safeguards; exception handling maps to user-friendly messages/localization", "value": 5 },
+                        { "label": "Uses annotations and handles basic errors", "value": 4 },
+                        { "label": "Relies on UI validation only", "value": 3 },
+                        { "label": "Ad-hoc validation; unclear error mapping", "value": 2 },
+                        { "label": "No validation strategy", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "auditing",
+                    "prompt": "Describe auditing (who/when/actions) and entity history. How would you audit a custom operation?",
+                    "dimension": "Observability & Auditing",
+                    "weight": 10,
+                    "options": [
+                        { "label": "Explains audit logs, entity history, impersonation notes; adds custom IAuditingStore entries and decorates methods/events", "value": 5 },
+                        { "label": "Knows audit logs and how to enable per entity/method", "value": 4 },
+                        { "label": "Reads logs only; unsure about custom events", "value": 3 },
+                        { "label": "Limited awareness", "value": 2 },
+                        { "label": "No idea", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                },
+                {
+                    "id": "error_handling",
+                    "prompt": "How do you surface exceptions as user-friendly messages and preserve diagnostics for developers?",
+                    "dimension": "Reliability & Error Handling",
+                    "weight": 8,
+                    "options": [
+                        { "label": "Uses UserFriendlyException/ProblemDetails; logs correlation IDs; preserves stack traces in logs while localizing messages", "value": 5 },
+                        { "label": "Returns friendly messages and logs errors", "value": 4 },
+                        { "label": "Generic error pages; minimal logging", "value": 3 },
+                        { "label": "Leaky technical errors to users", "value": 2 },
+                        { "label": "No strategy", "value": 1 }
+                    ],
+                    "notesEnabled": true
+                }
+            ]
+
+            
+        }; // <= embedded CONFIG JSON
+
+        const SCALE_MIN = CONFIG.scale.min, SCALE_MAX = CONFIG.scale.max;
+
+        function el(tag, attrs = {}, children = []) {
+            const e = document.createElement(tag);
+            Object.entries(attrs).forEach(([k, v]) => {
+                if (k === 'class') e.className = v;
+                else if (k === 'text') e.textContent = v;
+                else e.setAttribute(k, v);
+            });
+            (Array.isArray(children) ? children : [children]).filter(Boolean).forEach(c => e.appendChild(c));
+            return e;
+        }
+
+        function mountCandidateFields() {
+            const grid = document.getElementById('candGrid');
+            grid.innerHTML = '';
+            const labels = CONFIG.candidateFields || ["Candidate Name", "Position / Role", "Interviewer(s)", "Interview Type", "Date"];
+            labels.forEach(lbl => {
+                const id = lbl.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+                const input = el('input', { type: 'text', id: id, placeholder: lbl });
+                grid.appendChild(el('div', {}, [el('label', { text: lbl }), input]));
+            });
+        }
+
+        function mountHrSummary() {
+            const oiSel = document.getElementById('overallImpression');
+            const rfSel = document.getElementById('roleFit');
+            const dSel = document.getElementById('decision');
+            (CONFIG.hrSummary?.overallImpressionOptions || []).forEach(v => oiSel.appendChild(el('option', { text: v })));
+            (CONFIG.hrSummary?.roleFitOptions || []).forEach(v => rfSel.appendChild(el('option', { text: v })));
+            (CONFIG.hrSummary?.decisionOptions || []).forEach(v => dSel.appendChild(el('option', { text: v })));
+        }
+
+        function mountQuestions() {
+            const root = document.getElementById('questions'); root.innerHTML = '';
+            CONFIG.questions.forEach(q => {
+                const block = el('div', { class: 'q' });
+                block.appendChild(el('div', { class: 'prompt', text: q.prompt }));
+                q.options.forEach(opt => {
+                    const id = `opt_${q.id}_${opt.value}`;
+                    const radio = el('input', { type: 'radio', name: `opt_${q.id}`, id, value: opt.value });
+                    const lbl = el('label', { class: 'opt', for: id }, [radio, document.createTextNode(' ' + opt.label)]);
+                    block.appendChild(lbl);
+                });
+                if (q.notesEnabled) {
+                    block.appendChild(el('div', { class: 'muted', text: 'Notes / justification (optional)' }));
+                    block.appendChild(el('textarea', { id: `notes_${q.id}` }));
+                }
+                root.appendChild(block);
+            });
+        }
+
+        function collectCandidate() {
+            const out = {};
+            (CONFIG.candidateFields || []).forEach(lbl => {
+                const id = lbl.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+                const v = (document.getElementById(id)?.value || '').trim();
+                out[id] = v;
+            });
+            return {
+                name: out['candidate_name'] || '',
+                role: out['position_role'] || '',
+                interviewType: out['interview_type'] || '',
+                date: out['date'] || '',
+                _raw: out
+            };
+        }
+
+        function collectQA() {
+            const answers = {}, scores = {}, notes = {};
+            CONFIG.questions.forEach(q => {
+                const radios = document.getElementsByName('opt_' + q.id);
+                let sel = null; for (const r of radios) { if (r.checked) { sel = parseInt(r.value); break; } }
+                scores[q.id] = sel || 0;
+                answers[q.id] = sel == null ? '' : (q.options.find(o => o.value === sel)?.label || '');
+                notes[q.id] = (document.getElementById('notes_' + q.id)?.value || '').trim();
+            });
+            return { answers, scores, notes };
+        }
+
+        function computeFinal(scores) {
+            let totalWeighted = 0, totalWeight = 0;
+            CONFIG.questions.forEach(q => {
+                totalWeighted += ((scores[q.id] || 0) / SCALE_MAX) * q.weight;
+                totalWeight += q.weight;
+            });
+            const normalized = totalWeight ? (totalWeighted / totalWeight) : 0;
+            const finalScore = normalized * SCALE_MAX;
+            let category = (CONFIG.categoryBands || []).find(b => finalScore >= b.min)?.label || 'F';
+            return { finalScore, category };
+        }
+
+        function buildDecisionMatrix(scores) {
+            const totals = {}, maxes = {};
+            CONFIG.questions.forEach(q => {
+                totals[q.dimension] = (totals[q.dimension] || 0) + (scores[q.id] || 0) * q.weight;
+                maxes[q.dimension] = (maxes[q.dimension] || 0) + (SCALE_MAX * q.weight);
+            });
+            return Object.keys(totals).map(dim => {
+                const weighted = totals[dim], max = maxes[dim] || 1;
+                const pct = (weighted / max) * 100;
+                return { dimension: dim, weightedScore: weighted, maxPossible: max, percent: parseFloat(pct.toFixed(1)) };
+            });
+        }
+
+        function renderMatrixTable(rows) {
+            const tbody = document.querySelector('#matrixTable tbody'); tbody.innerHTML = '';
+            rows.forEach(r => {
+                const tr = el('tr', {}, [
+                    el('td', { text: r.dimension }),
+                    el('td', { text: r.weightedScore.toFixed(1) }),
+                    el('td', { text: r.maxPossible.toFixed(1) }),
+                    el('td', { text: r.percent + '%' })
+                ]);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderMatrixChart(rows) {
+            const canvas = document.getElementById('matrixChart'), ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height, pad = 40, innerW = w - pad * 2, innerH = h - pad * 2;
+            ctx.clearRect(0, 0, w, h);
+            // axes
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, h - pad); ctx.lineTo(w - pad, h - pad); ctx.stroke();
+            const barW = rows.length ? innerW / rows.length * 0.6 : 0;
+            rows.forEach((r, i) => {
+                const x = pad + (innerW / rows.length) * i + (innerW / rows.length - barW) / 2;
+                const barH = (r.percent / 100) * innerH;
+                const y = h - pad - barH;
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--brand') || '#6a5acd';
+                ctx.fillRect(x, y, barW, barH);
+                ctx.fillStyle = '#111827'; ctx.font = '12px system-ui';
+                const label = r.dimension.length > 20 ? r.dimension.slice(0, 20) + '…' : r.dimension;
+                ctx.fillText(label, x - 6, h - pad + 14);
+                ctx.fillText(r.percent + '%', x, y - 4);
+            });
+        }
+
+        function generateReport() {
+            const cand = collectCandidate();
+            const interviewers = (document.querySelector('#candGrid input[placeholder="Interviewer(s)"]')?.value || '').trim();
+            const { answers, scores, notes } = collectQA();
+            const { finalScore, category } = computeFinal(scores);
+            const dmRows = buildDecisionMatrix(scores);
+            renderMatrixTable(dmRows);
+            renderMatrixChart(dmRows);
+
+            const overallImpression = document.getElementById('overallImpression').value;
+            const roleFit = document.getElementById('roleFit').value;
+            const decision = document.getElementById('decision').value;
+            const hrComments = (document.getElementById('hrComments').value || '').trim();
+
+            let rpt = `Topic: ${CONFIG.topic}\nCandidate: ${cand.name}\nRole: ${cand.role}\nType: ${cand.interviewType}\nDate: ${cand.date}\nInterviewers: ${interviewers}\n\n`;
+            rpt += `Final Score: ${finalScore.toFixed(2)} / ${SCALE_MAX.toFixed(1)}  |  Category: ${category}\n\n`;
+            rpt += `=== Detailed Responses ===\n`;
+            CONFIG.questions.forEach(q => {
+                rpt += `\n• ${q.prompt}\n  Selected: ${answers[q.id] || '[Not selected]'}  (Score: ${scores[q.id] || 0})\n`;
+                if (q.notesEnabled && notes[q.id]) rpt += `  Notes: ${notes[q.id]}\n`;
+            });
+            rpt += `\n=== HR Summary ===\nOverall Impression: ${overallImpression}\nRecommended Role Fit: ${roleFit}\nDecision: ${decision}\n`;
+            if (hrComments) rpt += `Comments: ${hrComments}\n`;
+
+            rpt += `\n=== Decision Matrix Alignment ===\nDimension | Weighted Score | Max Possible | Alignment %\n`;
+            rpt += `-----------------------------------------------------\n`;
+            dmRows.forEach(r => { rpt += `${r.dimension} | ${r.weightedScore.toFixed(1)} | ${r.maxPossible.toFixed(1)} | ${r.percent}%\n`; });
+
+            document.getElementById('reportBox').textContent = rpt;
+
+            const json = {
+                meta: { version: "1.0.0", generatedAt: new Date().toISOString() },
+                topic: CONFIG.topic,
+                candidate: { name: cand.name, role: cand.role, interviewType: cand.interviewType, date: cand.date },
+                interviewers,
+                finalScore: parseFloat(finalScore.toFixed(2)),
+                category,
+                hrSummary: { overallImpression, roleFit, decision, comments: hrComments },
+                items: CONFIG.questions.map(q => ({
+                    id: q.id, prompt: q.prompt, selectedAnswer: answers[q.id], score: scores[q.id] || 0,
+                    weight: q.weight, dimension: q.dimension, notes: q.notesEnabled ? (notes[q.id] || '') : ''
+                })),
+                decisionMatrix: dmRows
+            };
+            window.__LAST_JSON__ = json;
+            return json;
+        }
+
+        function downloadJson() {
+            const data = window.__LAST_JSON__ || generateReport();
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const fname = (data.candidate?.name || 'candidate').toString().replace(/\s+/g, '_');
+            a.href = url; a.download = `solvefy_candidate_report_${fname}.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        }
+        function printPdf() { window.print(); }
+
+        document.getElementById('btnGenerate').addEventListener('click', generateReport);
+        document.getElementById('btnDownloadJson').addEventListener('click', downloadJson);
+        document.getElementById('btnPrint').addEventListener('click', printPdf);
+
+        (function init() {
+            document.title = `${CONFIG.brand.title} — ${CONFIG.topic}`;
+            mountCandidateFields();
+            mountHrSummary();
+            mountQuestions();
+        })();
+    </script>
+</body>
+
+</html>
