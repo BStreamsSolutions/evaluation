@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solvefy Interview Evaluation Portal — QA Engineer (Manual + Automation)</title>
+    <style>
+        :root {
+            --brand: #6a5acd;
+            --brand-2: #00c2ff;
+            --ink: #111827;
+            --muted: #6b7280;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --ring: #e5e7eb;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink)
+        }
+
+        header {
+            background: linear-gradient(90deg, var(--brand), var(--brand-2));
+            color: #fff;
+            padding: 20px
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 16px
+        }
+
+        .brand {
+            display: flex;
+            gap: 16px;
+            align-items: center
+        }
+
+        .brand .logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 8px;
+            background: #fff1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .15)
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 26px
+        }
+
+        .subtitle {
+            opacity: .95
+        }
+
+        main {
+            padding: 24px 0
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--ring);
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 18px;
+            box-shadow: 0 6px 18px rgba(17, 24, 39, .04)
+        }
+
+        h2 {
+            margin: 4px 0 14px 0;
+            font-size: 20px
+        }
+
+        label {
+            font-weight: 600
+        }
+
+        input[type=text],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--ring);
+            border-radius: 10px
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 10px 12px;
+            border: 1px solid var(--ring);
+            border-radius: 10px
+        }
+
+        .grid {
+            display: grid;
+            gap: 14px
+        }
+
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr)
+        }
+
+        @media(max-width:900px) {
+            .grid-3 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .q {
+            padding: 14px;
+            border: 1px solid var(--ring);
+            border-radius: 12px;
+            background: #fff;
+            margin-bottom: 14px
+        }
+
+        .prompt {
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .opt {
+            display: block;
+            margin: 6px 0;
+            cursor: pointer
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        button {
+            background: var(--brand);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700
+        }
+
+        button.secondary {
+            background: #fff;
+            color: var(--brand);
+            border: 1px solid var(--brand)
+        }
+
+        button.ghost {
+            background: #fff;
+            color: #111;
+            border: 1px solid var(--ring)
+        }
+
+        #reportBox {
+            white-space: pre-wrap;
+            background: #0b1021;
+            color: #e5e7eb;
+            border-radius: 10px;
+            padding: 14px;
+            overflow: auto;
+            max-height: 420px;
+            border: 1px solid #0f172a
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%
+        }
+
+        th,
+        td {
+            border: 1px solid var(--ring);
+            padding: 8px;
+            text-align: left;
+            font-size: 14px
+        }
+
+        th {
+            background: #f3f4f6
+        }
+
+        canvas {
+            max-width: 100%;
+            height: 260px;
+            border: 1px solid var(--ring);
+            border-radius: 10px;
+            background: #fff
+        }
+
+        .footer {
+            padding: 20px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px
+        }
+
+        @media print {
+
+            header,
+            .actions {
+                display: none
+            }
+
+            body {
+                background: #fff
+            }
+
+            .card {
+                box-shadow: none;
+                border-color: #ddd
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="wrap brand">
+            <div class="logo"></div>
+            <div>
+                <h1>Solvefy Interview Evaluation Portal</h1>
+                <div class="subtitle">QA Engineer Evaluation — Manual + Automation Experience</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="wrap">
+
+        <section class="card">
+            <h2>Candidate & Interview Details</h2>
+            <div class="grid grid-3">
+                <div><label>Candidate Name</label><input type="text" id="candidate_name"></div>
+                <div><label>Position / Role</label><input type="text" id="position_role"></div>
+                <div><label>Interviewer(s)</label><input type="text" id="interviewers"></div>
+                <div><label>Interview Type</label><input type="text" id="interview_type"></div>
+                <div><label>Date</label><input type="text" id="date"></div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Questions (MCQ + Optional Notes)</h2>
+            <div id="questions"></div>
+        </section>
+
+        <section class="card">
+            <h2>HR Summary & Decision</h2>
+            <div class="grid grid-3">
+                <div>
+                    <label>Overall Impression</label>
+                    <select id="overallImpression">
+                        <option>Excellent</option>
+                        <option>Strong</option>
+                        <option>Good</option>
+                        <option>Average</option>
+                        <option>Below Average</option>
+                        <option>Poor</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Recommended Role Fit</label>
+                    <select id="roleFit">
+                        <option>Senior</option>
+                        <option>Mid</option>
+                        <option>Junior</option>
+                        <option>Team Lead</option>
+                        <option>Project Manager</option>
+                        <option>Other / Not sure</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Decision</label>
+                    <select id="decision">
+                        <option>Hire</option>
+                        <option>Strong Consider</option>
+                        <option>Hold</option>
+                        <option>Reject</option>
+                    </select>
+                </div>
+            </div>
+            <div style="margin-top:12px">
+                <label>Additional Comments</label>
+                <textarea id="hrComments"></textarea>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Actions</h2>
+            <div class="actions">
+                <button onclick="generateReport()">Generate Report & Score</button>
+                <button class="secondary" onclick="downloadJSON()">Download JSON</button>
+                <button class="ghost" onclick="window.print()">Print / Save PDF</button>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Generated Report</h2>
+            <div id="reportBox">No report generated yet.</div>
+        </section>
+
+        <section class="card">
+            <h2>Decision Matrix Alignment</h2>
+            <div style="overflow:auto">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Dimension</th>
+                            <th>Weighted Score</th>
+                            <th>Max</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matrixBody"></tbody>
+                </table>
+            </div>
+            <div style="margin-top:12px">
+                <canvas id="chart" width="1000" height="260"></canvas>
+            </div>
+        </section>
+
+        <div class="footer">© Solvefy — Structured, fair, and fast interviews.</div>
+
+    </main>
+
+    <script>
+        const SCALE_MAX = 5;
+
+        const QUESTIONS = [
+            {
+                id: "manual_test_design", dimension: "Manual Testing Fundamentals", weight: 10,
+                prompt: "How does the candidate design manual test cases?",
+                options: [
+                    { label: "Structured, boundary-focused, traceable to requirements", value: 5 },
+                    { label: "Covers main + edge cases clearly", value: 4 },
+                    { label: "Basic coverage only", value: 3 },
+                    { label: "Limited structure; misses cases", value: 2 },
+                    { label: "Ad-hoc, no systematic approach", value: 1 }
+                ]
+            },
+            {
+                id: "bug_reporting", dimension: "Manual Testing Fundamentals", weight: 10,
+                prompt: "Quality of bug reporting?",
+                options: [
+                    { label: "Clear steps, logs, severity, reproducibility", value: 5 },
+                    { label: "Well documented with most details", value: 4 },
+                    { label: "Basic description", value: 3 },
+                    { label: "Missing key info", value: 2 },
+                    { label: "Vague and unclear", value: 1 }
+                ]
+            },
+            {
+                id: "regression_strategy", dimension: "Manual Testing Fundamentals", weight: 10,
+                prompt: "Approach to regression testing?",
+                options: [
+                    { label: "Risk-based prioritization + automation alignment", value: 5 },
+                    { label: "Structured regression suite", value: 4 },
+                    { label: "Covers major flows", value: 3 },
+                    { label: "Limited regression thinking", value: 2 },
+                    { label: "No regression planning", value: 1 }
+                ]
+            },
+            {
+                id: "selenium_framework", dimension: "Automation Engineering", weight: 15,
+                prompt: "Experience building automation frameworks?",
+                options: [
+                    { label: "Designed scalable framework (POM, CI integrated)", value: 5 },
+                    { label: "Built/modularized framework", value: 4 },
+                    { label: "Worked within existing framework", value: 3 },
+                    { label: "Minor exposure", value: 2 },
+                    { label: "No framework knowledge", value: 1 }
+                ]
+            },
+            {
+                id: "automation_strategy", dimension: "Automation Engineering", weight: 15,
+                prompt: "Automation strategy & tool selection?",
+                options: [
+                    { label: "Chooses tools based on ROI, risk & architecture", value: 5 },
+                    { label: "Selects suitable tools logically", value: 4 },
+                    { label: "Basic reasoning", value: 3 },
+                    { label: "Tool-first thinking", value: 2 },
+                    { label: "No strategic thinking", value: 1 }
+                ]
+            },
+            {
+                id: "ci_cd", dimension: "Automation Engineering", weight: 10,
+                prompt: "CI/CD integration experience?",
+                options: [
+                    { label: "Fully integrated pipelines + reporting", value: 5 },
+                    { label: "Configured CI execution", value: 4 },
+                    { label: "Basic understanding", value: 3 },
+                    { label: "Limited exposure", value: 2 },
+                    { label: "No CI experience", value: 1 }
+                ]
+            },
+            {
+                id: "api_testing", dimension: "Technical Depth", weight: 10,
+                prompt: "API testing capability?",
+                options: [
+                    { label: "Validates schema, security, performance", value: 5 },
+                    { label: "Functional + negative testing", value: 4 },
+                    { label: "Basic request validation", value: 3 },
+                    { label: "Minimal knowledge", value: 2 },
+                    { label: "No API testing experience", value: 1 }
+                ]
+            },
+            {
+                id: "sql_knowledge", dimension: "Technical Depth", weight: 5,
+                prompt: "SQL & database validation?",
+                options: [
+                    { label: "Complex joins, data validation & optimization", value: 5 },
+                    { label: "Confident querying", value: 4 },
+                    { label: "Basic queries", value: 3 },
+                    { label: "Limited exposure", value: 2 },
+                    { label: "No SQL knowledge", value: 1 }
+                ]
+            },
+            {
+                id: "performance_testing", dimension: "Technical Depth", weight: 5,
+                prompt: "Performance testing understanding?",
+                options: [
+                    { label: "Hands-on with load tools + analysis", value: 5 },
+                    { label: "Worked on execution & monitoring", value: 4 },
+                    { label: "Conceptual understanding", value: 3 },
+                    { label: "Minimal knowledge", value: 2 },
+                    { label: "No exposure", value: 1 }
+                ]
+            },
+            {
+                id: "ownership", dimension: "Ownership & Accountability", weight: 10,
+                prompt: "Ownership of quality issues?",
+                options: [
+                    { label: "Proactively resolves & improves process", value: 5 },
+                    { label: "Owns issues until closure", value: 4 },
+                    { label: "Follows assigned tasks", value: 3 },
+                    { label: "Reactive approach", value: 2 },
+                    { label: "Deflects responsibility", value: 1 }
+                ]
+            },
+            {
+                id: "risk_analysis", dimension: "Problem-Solving & Trade-offs", weight: 10,
+                prompt: "Risk assessment ability?",
+                options: [
+                    { label: "Identifies high-risk areas & mitigates early", value: 5 },
+                    { label: "Good prioritization", value: 4 },
+                    { label: "Basic awareness", value: 3 },
+                    { label: "Limited prioritization", value: 2 },
+                    { label: "No risk evaluation", value: 1 }
+                ]
+            },
+            {
+                id: "communication", dimension: "Communication & Stakeholder Management", weight: 10,
+                prompt: "Communication with dev & stakeholders?",
+                options: [
+                    { label: "Clear, structured, influence-driven", value: 5 },
+                    { label: "Collaborative & clear", value: 4 },
+                    { label: "Functional communication", value: 3 },
+                    { label: "Occasional misalignment", value: 2 },
+                    { label: "Poor communication", value: 1 }
+                ]
+            },
+            {
+                id: "agile_process", dimension: "Cultural / Team Fit & Coachability", weight: 5,
+                prompt: "Agile participation?",
+                options: [
+                    { label: "Actively improves sprint quality", value: 5 },
+                    { label: "Participates effectively", value: 4 },
+                    { label: "Understands ceremonies", value: 3 },
+                    { label: "Passive involvement", value: 2 },
+                    { label: "No Agile exposure", value: 1 }
+                ]
+            },
+            {
+                id: "learning_mindset", dimension: "Growth Mindset & Adaptability", weight: 5,
+                prompt: "Learning new tools & adapting?",
+                options: [
+                    { label: "Continuously upskills & applies learning", value: 5 },
+                    { label: "Learns when needed", value: 4 },
+                    { label: "Basic adaptability", value: 3 },
+                    { label: "Resistant to change", value: 2 },
+                    { label: "Avoids new tools", value: 1 }
+                ]
+            },
+            {
+                id: "automation_vs_manual_balance", dimension: "Strategic Thinking", weight: 10,
+                prompt: "Balancing manual vs automation testing?",
+                options: [
+                    { label: "Strategic balance based on ROI & stability", value: 5 },
+                    { label: "Good judgment in selection", value: 4 },
+                    { label: "Basic understanding", value: 3 },
+                    { label: "Automation-heavy without logic", value: 2 },
+                    { label: "No differentiation", value: 1 }
+                ]
+            }
+        ];
+
+        function mountQuestions() {
+            const root = document.getElementById("questions");
+            QUESTIONS.forEach(q => {
+                const div = document.createElement("div");
+                div.className = "q";
+                div.innerHTML = `<div class="prompt">${q.prompt}</div>`;
+                q.options.forEach(opt => {
+                    div.innerHTML += `<label class="opt">
+        <input type="radio" name="${q.id}" value="${opt.value}">
+        ${opt.label}
+      </label>`;
+                });
+                root.appendChild(div);
+            });
+        }
+
+        function generateReport() {
+            let totalWeight = 0, totalScore = 0;
+            const dimensionTotals = {}, dimensionMax = {};
+            QUESTIONS.forEach(q => {
+                const val = parseInt(document.querySelector(`input[name="${q.id}"]:checked`)?.value || 0);
+                totalWeight += q.weight;
+                totalScore += (val / SCALE_MAX) * q.weight;
+                dimensionTotals[q.dimension] = (dimensionTotals[q.dimension] || 0) + (val * q.weight);
+                dimensionMax[q.dimension] = (dimensionMax[q.dimension] || 0) + (SCALE_MAX * q.weight);
+            });
+            const finalScore = (totalScore / totalWeight) * SCALE_MAX;
+            const percentMap = {};
+            let table = "";
+            for (const dim in dimensionTotals) {
+                const pct = (dimensionTotals[dim] / dimensionMax[dim]) * 100;
+                percentMap[dim] = pct;
+                table += `<tr><td>${dim}</td><td>${dimensionTotals[dim].toFixed(1)}</td><td>${dimensionMax[dim].toFixed(1)}</td><td>${pct.toFixed(1)}%</td></tr>`;
+            }
+            document.getElementById("matrixBody").innerHTML = table;
+            drawChart(percentMap);
+            document.getElementById("reportBox").textContent =
+                `Final Score: ${finalScore.toFixed(2)} / 5\nCategory: ${grade(finalScore)}`;
+        }
+
+        function grade(score) {
+            if (score >= 4.5) return "A+";
+            if (score >= 4.0) return "A";
+            if (score >= 3.5) return "B";
+            if (score >= 2.5) return "C";
+            if (score >= 1.8) return "D";
+            if (score >= 1.0) return "E";
+            return "F";
+        }
+
+        function drawChart(data) {
+            const canvas = document.getElementById("chart");
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const dims = Object.keys(data);
+            const barWidth = 40;
+            dims.forEach((d, i) => {
+                const x = 60 + i * 60;
+                const h = (data[d] / 100) * 180;
+                ctx.fillStyle = "#6a5acd";
+                ctx.fillRect(x, 220 - h, barWidth, h);
+                ctx.fillStyle = "#111";
+                ctx.fillText(d.substring(0, 10), x, 240);
+            });
+        }
+
+        function downloadJSON() {
+            generateReport();
+            const blob = new Blob([document.getElementById("reportBox").textContent], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "solvefy_candidate_report.json";
+            a.click();
+        }
+
+        mountQuestions();
+    </script>
+</body>
+
+</html>
